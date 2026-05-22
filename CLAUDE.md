@@ -197,32 +197,25 @@ com.lunchpicker.up
 ## DB 핵심 정보
 
 ### 스키마 구성
-
-| DB | 소유 도메인 | 접근 도메인 | 권한 |
-|----|------------|------------|------|
-| `menu_db` | menu (Dev A) | picker (Dev B) | 읽기 전용 |
-| `menu_db` | menu (Dev A) | aipicker (Dev C) | 읽기 전용 |
-| `ai_db` | aipicker (Dev C) | — | 읽기/쓰기 |
+단일 DB `menu_db` 안에 모든 테이블이 존재한다.
 
 ### 테이블 요약
-
 ```
 menu_db
-├── menus    (id, name, restaurant_name, category, price_range, distance, image_url, last_eaten_at, created_at)
-└── reviews  (id, menu_id, nickname, pin, rating, comment, created_at)
-
-ai_db
+├── menus                     (id, name, restaurant_name, category, price_range, distance, image_url, last_eaten_at, created_at)
+├── reviews                   (id, menu_id, nickname, pin, rating, comment, created_at)
 ├── ai_recommendations        (id, user_input, created_at)
 └── ai_recommendation_results (id, recommendation_id, rank, menu_id, menu_name, reason)
 ```
 
-### DB 접속 계정
-
-| 계정 | 대상 | 권한 |
-|------|------|------|
-| `menu_writer` | Dev A | menu_db ALL |
-| `menu_reader` | Dev B, Dev C | menu_db SELECT only |
-| `ai_writer` | Dev C | ai_db ALL |
+### DB 접속 정보
+| 항목 | 값 |
+|------|----|
+| host | localhost |
+| port | 3306 |
+| database | menu_db |
+| username | lunchpicker |
+| password | 1234 |
 
 > 상세 DDL → `sql/01_schema.sql` | 샘플 데이터 → `sql/02_sample_data.sql`
 

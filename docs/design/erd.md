@@ -7,10 +7,9 @@
 
 ## 데이터베이스 구성
 
-| DB | 소유 서비스 | 공유 서비스 | 비고 |
-|----|------------|------------|------|
-| `menu_db` | menu-service (Dev A) | picker-service (Dev B), ai-service (Dev C) | Dev B, C는 SELECT 전용 |
-| `ai_db` | ai-service (Dev C) | — | Dev C 전용 |
+| DB | 설명 |
+|----|------|
+| `menu_db` | 전체 서비스 단일 DB (menus, reviews, ai_recommendations, ai_recommendation_results) |
 
 ---
 
@@ -117,7 +116,7 @@ GROUP BY m.id;
 
 ---
 
-## 2. ai_db
+## 2. ai_recommendations / ai_recommendation_results
 
 ### 다이어그램
 
@@ -177,25 +176,7 @@ GROUP BY m.id;
 
 ---
 
-## 3. 크로스 DB 참조 규칙
-
-`ai_db.ai_recommendation_results.menu_id`는 `menu_db.menus.id`를 참조하지만
-MySQL은 서로 다른 DB 간 FK 제약을 지원하지 않으므로 **애플리케이션 레벨에서 관리**한다.
-
-```
-ai_db                          menu_db
-┌─────────────────────┐        ┌──────────────┐
-│ ai_recommendation   │        │    menus     │
-│ _results            │        │              │
-│  menu_id = 5   ─ ─ ─│─ ─ ─ ▶│  id = 5      │
-│  menu_name = "파스타"│        │  name = "파스타"│
-└─────────────────────┘        └──────────────┘
-  물리적 FK 없음, 숫자만 참조      추천 시점 스냅샷 저장
-```
-
----
-
-## 4. 공통 설계 원칙
+## 3. 공통 설계 원칙
 
 - **AUTO_INCREMENT**: 모든 PK는 BIGINT AUTO_INCREMENT 사용
 - **DATETIME**: 타임존 없이 서버 로컬 시간 저장 (학습용 프로젝트)

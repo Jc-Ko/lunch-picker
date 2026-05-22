@@ -163,12 +163,11 @@ http://localhost:3000  →  메인 화면 확인
 
 ```
 MySQL (Docker, Port 3306)
-├── menu_db      # Dev A 소유 / Dev B·C 읽기 공유
-│   ├── menus    # 메뉴 16개 샘플
-│   └── reviews  # 리뷰 60개 샘플 (카테고리별 4개 메뉴 × 5개)
-└── ai_db        # Dev C 전용
-    ├── ai_recommendations
-    └── ai_recommendation_results
+└── menu_db
+    ├── menus                     # 메뉴 16개 샘플
+    ├── reviews                   # 리뷰 60개 샘플
+    ├── ai_recommendations        # AI 추천 요청 히스토리
+    └── ai_recommendation_results # AI 추천 결과 TOP 3
 ```
 
 **샘플 데이터 평균 별점 분포**
