@@ -13,6 +13,13 @@ _Adapted from Andrej Karpathy's CLAUDE.md_
 - If something is unclear, stop. Name what's confusing. Ask.
 - If a simpler approach exists, say so.
 
+### STOP and ask before proceeding when:
+- A file, path, table, or API referenced in the request doesn't exist in the project
+- The request can be interpreted in two or more ways
+- A required value (name, enum, config, ID) isn't specified anywhere in the docs
+- The request conflicts with CLAUDE.md rules (DO NOT section, conventions, scope)
+Do not guess past these. Stop, name the specific blocker, and ask.
+
 ## 2. Simplicity First
 - No features beyond what was asked.
 - No abstractions for single-use code.
@@ -387,3 +394,4 @@ docker exec -it lunch-picker-mysql mysql -u root -prootpassword
 2. `docs/CONVENTIONS.md`
 3. `docs/design/erd.md`
 4. `docs/design/api-spec.md`
+
