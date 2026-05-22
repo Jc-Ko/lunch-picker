@@ -375,7 +375,7 @@ docker exec -it lunch-picker-mysql mysql -u root -prootpassword
 
 ## 새 세션 시작 시
 
-새 Claude Code 세션을 시작하면:
+새 Claude Code 세션을 시작하면, 혹은 다른 AI도구를 이용하여 세션을 시작하면:
 
 1. 이 파일(`CLAUDE.md`) 자동 로드됨
 2. 본인 담당 도메인 확인: `backend/src/main/java/com/lunchpicker/up/{domain}/`
