@@ -88,7 +88,7 @@ CREATE INDEX idx_recommendations_created_at ON ai_recommendations (created_at);
 CREATE TABLE ai_recommendation_results (
     id                BIGINT       NOT NULL AUTO_INCREMENT,
     recommendation_id BIGINT       NOT NULL,
-    rank              TINYINT      NOT NULL,
+    `rank`            TINYINT      NOT NULL,
     menu_id           BIGINT       NOT NULL,
     menu_name         VARCHAR(100) NOT NULL,
     reason            TEXT         NULL,
@@ -100,7 +100,7 @@ CREATE TABLE ai_recommendation_results (
         ON DELETE CASCADE,
 
     CONSTRAINT chk_rank
-        CHECK (rank BETWEEN 1 AND 3)
+        CHECK (`rank` BETWEEN 1 AND 3)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE INDEX idx_results_recommendation_id ON ai_recommendation_results (recommendation_id);
