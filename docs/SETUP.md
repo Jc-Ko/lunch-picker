@@ -257,7 +257,7 @@ spring:
 gemini:
   api:
     key: ${GEMINI_API_KEY:}   # 실제 값은 application-secret.yml에서 주입 (Dev C)
-    url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent
+    url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
 
 server:
   port: 8080
