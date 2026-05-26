@@ -32,11 +32,14 @@ public class AiRecommendationResult {
     @Column(columnDefinition = "TEXT")
     private String reason;
 
-    // TODO: Dev C - 팩토리 메서드 구현
     public static AiRecommendationResult create(AiRecommendation recommendation, Integer rank,
                                                 Long menuId, String menuName, String reason) {
         AiRecommendationResult result = new AiRecommendationResult();
-        // TODO: Dev C
+        result.recommendation = recommendation;
+        result.rank = rank;
+        result.menuId = menuId;
+        result.menuName = menuName;
+        result.reason = reason;
         return result;
     }
 }

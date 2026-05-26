@@ -26,7 +26,7 @@ public class AiPickerController {
 
     @GetMapping("/history")
     public ApiResponse<List<AiRecommendResponse>> getHistory(
-            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "20") int limit) {
         return ApiResponse.ok(aiPickerService.getHistory(limit));
     }
 }

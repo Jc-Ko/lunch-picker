@@ -1,5 +1,6 @@
 package com.lunchpicker.up.common;
 
+import com.lunchpicker.up.aipicker.AiRecommendationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -31,6 +32,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleIllegalArgument(IllegalArgumentException e) {
+        return ApiResponse.error(e.getMessage());
+    }
+
+    @ExceptionHandler(AiRecommendationException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiResponse<Void> handleAiRecommendation(AiRecommendationException e) {
         return ApiResponse.error(e.getMessage());
     }
 

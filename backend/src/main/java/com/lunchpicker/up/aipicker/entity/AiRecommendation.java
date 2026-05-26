@@ -31,10 +31,9 @@ public class AiRecommendation {
     @OneToMany(mappedBy = "recommendation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AiRecommendationResult> results = new ArrayList<>();
 
-    // TODO: Dev C - 팩토리 메서드 구현
     public static AiRecommendation create(String userInput) {
         AiRecommendation recommendation = new AiRecommendation();
-        // TODO: Dev C
+        recommendation.userInput = userInput;
         return recommendation;
     }
 }
