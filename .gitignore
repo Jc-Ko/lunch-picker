@@ -6,6 +6,7 @@ backend/build/
 backend/.gradle/
 backend/out/
 backend/*.jar
+backend/src/main/resources/application-secret.yml
 
 # Frontend
 frontend/node_modules/

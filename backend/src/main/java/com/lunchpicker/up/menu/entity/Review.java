@@ -37,21 +37,22 @@ public class Review {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    // TODO: Dev A - 팩토리 메서드 구현
     public static Review create(Long menuId, String nickname, String pin, Integer rating, String comment) {
         Review review = new Review();
-        // TODO: Dev A
+        review.menuId = menuId;
+        review.nickname = nickname;
+        review.pin = pin;
+        review.rating = rating;
+        review.comment = comment;
         return review;
     }
 
-    // TODO: Dev A - PIN 검증
     public boolean matchPin(String inputPin) {
-        // TODO: Dev A
-        return false;
+        return this.pin.equals(inputPin);
     }
 
-    // TODO: Dev A - 리뷰 수정
     public void update(Integer rating, String comment) {
-        // TODO: Dev A
+        this.rating = rating;
+        this.comment = comment;
     }
 }

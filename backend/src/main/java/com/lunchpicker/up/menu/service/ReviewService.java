@@ -1,13 +1,16 @@
 package com.lunchpicker.up.menu.service;
 
 import com.lunchpicker.up.menu.dto.ReviewRequest;
+import com.lunchpicker.up.menu.dto.ReviewUpdateRequest;
 import com.lunchpicker.up.menu.dto.ReviewResponse;
+import com.lunchpicker.up.menu.entity.Review;
 import com.lunchpicker.up.menu.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -16,29 +19,42 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
 
-    // TODO: Dev A - menuId에 해당하는 리뷰 목록 반환
     public List<ReviewResponse> getReviews(Long menuId) {
-        // TODO: Dev A
-        return List.of();
+        return reviewRepository.findByMenuId(menuId).stream()
+                .map(this::toResponse)
+                .toList();
     }
 
-    // TODO: Dev A - 리뷰 등록
     @Transactional
     public ReviewResponse createReview(Long menuId, ReviewRequest request) {
-        // TODO: Dev A
-        return null;
+        Review review = Review.create(menuId, request.nickname(), request.pin(),
+                request.rating(), request.comment());
+        return toResponse(reviewRepository.save(review));
     }
 
-    // TODO: Dev A - 리뷰 수정 (PIN 검증 후 수정)
     @Transactional
-    public ReviewResponse updateReview(Long id, ReviewRequest request) {
-        // TODO: Dev A
-        return null;
+    public ReviewResponse updateReview(Long id, ReviewUpdateRequest request) {
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("리뷰를 찾을 수 없습니다. id=" + id));
+        if (!review.matchPin(request.pin())) {
+            throw new IllegalArgumentException("PIN이 일치하지 않습니다");
+        }
+        review.update(request.rating(), request.comment());
+        return toResponse(review);
     }
 
-    // TODO: Dev A - 리뷰 삭제 (PIN 검증 후 삭제)
     @Transactional
     public void deleteReview(Long id, String pin) {
-        // TODO: Dev A
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("리뷰를 찾을 수 없습니다. id=" + id));
+        if (!review.matchPin(pin)) {
+            throw new IllegalArgumentException("PIN이 일치하지 않습니다");
+        }
+        reviewRepository.delete(review);
+    }
+
+    private ReviewResponse toResponse(Review review) {
+        return new ReviewResponse(review.getId(), review.getMenuId(), review.getNickname(),
+                review.getRating(), review.getComment(), review.getCreatedAt());
     }
 }

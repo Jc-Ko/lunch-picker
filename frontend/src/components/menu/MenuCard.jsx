@@ -1,11 +1,47 @@
-// TODO: Dev A — 메뉴 카드 UI 구현
-// props: { menu }
-// 표시 항목: 이미지, 이름, 식당명, 카테고리, 가격대, 거리, 평균 별점, 리뷰 수
+import { useNavigate } from 'react-router-dom'
+
 export default function MenuCard({ menu }) {
+  const navigate = useNavigate()
+
   return (
-    <div className="border rounded-lg p-4 bg-white shadow-sm">
-      {/* TODO: Dev A */}
-      <p className="text-gray-400 text-sm">MenuCard — {menu?.name}</p>
+    <div
+      onClick={() => navigate(`/menus/${menu.id}`)}
+      className="border rounded-lg bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow overflow-hidden"
+    >
+      {menu.imageUrl ? (
+        <img
+          src={menu.imageUrl}
+          alt={menu.name}
+          className="w-full h-40 object-cover"
+        />
+      ) : (
+        <div className="w-full h-40 bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
+          이미지 없음
+        </div>
+      )}
+
+      <div className="p-4">
+        <h3 className="font-semibold text-gray-800 text-lg mb-1 truncate">{menu.name}</h3>
+        <p className="text-sm text-gray-500 mb-3 truncate">{menu.restaurantName}</p>
+
+        <div className="flex flex-wrap gap-1 mb-3">
+          <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
+            {menu.category}
+          </span>
+          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+            {menu.priceRange}
+          </span>
+          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+            {menu.distance}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <span>⭐ {menu.avgRating != null ? menu.avgRating : '—'}</span>
+          <span>·</span>
+          <span>리뷰 {menu.reviewCount}개</span>
+        </div>
+      </div>
     </div>
   )
 }

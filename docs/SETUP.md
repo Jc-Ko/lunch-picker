@@ -147,7 +147,7 @@ docker exec -it lunch-picker-mysql mysql -u root -prootpassword
 
 # DB 목록 확인
 SHOW DATABASES;
-# menu_db, ai_db 가 보이면 정상
+# menu_db 가 보이면 정상
 
 # 메뉴 데이터 확인
 USE menu_db;
@@ -238,10 +238,12 @@ java {
 ```yaml
 # backend/src/main/resources/application.yml
 spring:
+  config:
+    import: optional:application-secret.yml   # 민감 정보 분리 파일 (.gitignore 처리됨)
   datasource:
     url: jdbc:mysql://localhost:3306/menu_db?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
-    username: menu_writer
-    password: password
+    username: lunchpicker
+    password: "1234"
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -252,34 +254,36 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
 
-  # ai_db 추가 DataSource (aipicker 도메인용)
-  ai-datasource:
-    url: jdbc:mysql://localhost:3306/ai_db?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
-    username: ai_writer
-    password: password
-
 gemini:
   api:
-    key: ${GEMINI_API_KEY}    # 환경변수로 주입 (Dev C)
+    key: ${GEMINI_API_KEY:}   # 실제 값은 application-secret.yml에서 주입 (Dev C)
     url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent
 
 server:
   port: 8080
 ```
 
-> `menu_db`는 기본 DataSource로 설정. `ai_db`는 별도 DataSource Bean으로 등록.
+`src/main/resources/application-secret.yml` (Gemini API 키 — **Dev C 필수, 나머지 팀원은 불필요**):
+
+```yaml
+# backend/src/main/resources/application-secret.yml
+# 이 파일은 .gitignore에 등록되어 깃에 올라가지 않는다. 각자 본인 키를 넣는다.
+gemini:
+  api:
+    key: 발급받은_본인_API_키
+```
+
+> DB는 단일 `menu_db` 하나만 사용한다. menu / picker / aipicker 도메인의 모든 테이블이 `menu_db` 안에 있다.
 > picker 도메인(Dev B)은 menu_db를 읽기 전용으로 사용하므로 별도 설정 불필요.
 
-> ⚠️ `application.yml`은 `.gitignore`에 추가하지 않습니다.
-> API 키 등 민감 정보는 IntelliJ Run Configuration의 환경변수로 주입하세요.
+> ⚠️ `application.yml`은 깃에 올라간다 (민감 정보 없음). **`application-secret.yml`은 절대 커밋하지 않는다** — `.gitignore`에 등록되어 있다.
+> API 키는 각자 발급해 본인 `application-secret.yml`에 넣는다. 이 파일이 없거나 키가 비어 있어도, Gemini를 호출하지 않는 menu / picker 작업은 정상 동작한다 (`import`가 `optional`이므로).
 
-### 5-5. IntelliJ Run Configuration 환경변수 설정 (Dev C 필수, 나머지 선택)
-- `Run` → `Edit Configurations`
-- 해당 Spring Boot 설정 선택
-- `Environment variables` 항목에 추가:
-  ```
-  GEMINI_API_KEY=발급받은키값
-  ```
+### 5-5. application-secret.yml 준비 (Dev C 필수, 나머지 선택)
+- `backend/src/main/resources/application-secret.yml` 파일을 만든다. (위 5-4의 예시 내용)
+- Google AI Studio에서 발급받은 본인 키를 `gemini.api.key`에 넣는다. (키 발급은 7번 항목 참고)
+- 이 파일은 `.gitignore`에 등록되어 있어 커밋되지 않는다. 팀원 각자 자기 파일을 만들어 쓴다.
+- IntelliJ에서 별도 Run Configuration 환경변수 설정은 필요 없다 — `application.yml`의 `spring.config.import`가 `application-secret.yml`을 자동으로 읽는다.
 
 ### 5-6. IntelliJ 추천 플러그인
 - `Lombok` — 필수
@@ -290,8 +294,8 @@ server:
 IntelliJ에서 `Run` 버튼 클릭 후:
 ```bash
 # WSL 또는 Windows PowerShell에서
-curl http://localhost:8081/api/menus
-# [] 또는 메뉴 목록 JSON 응답 확인
+curl http://localhost:8080/api/menus
+# 메뉴 목록 JSON 응답 확인 (ApiResponse 래퍼 형식)
 ```
 
 ---
@@ -405,12 +409,17 @@ VS Code WSL 모드에서 Extensions 탭 → 아래 Extension 검색 후 `Install
 
 ## 7. Gemini API 키 발급 (Dev C)
 
-1. [Google AI Studio](https://aistudio.google.com) 접속 (Google 계정 로그인)
-2. 좌측 메뉴 `Get API key` → `Create API key`
+API 키는 **팀원 각자 본인 Google 계정으로 발급**한다. 키를 공유하지 않는다.
+
+1. [Google AI Studio](https://aistudio.google.com) 접속 (Google 계정 로그인, 별도 회원가입 없음)
+2. `Get API key` → `Create API key` 클릭
+   - 프로젝트가 없으면 새 프로젝트를 먼저 만든다 (이름은 자유, 예: `lunch-picker`)
 3. 발급된 키 복사
-4. IntelliJ Run Configuration 환경변수에 `GEMINI_API_KEY` 로 등록 (5-5 참고)
+4. `backend/src/main/resources/application-secret.yml` 파일을 만들고 `gemini.api.key`에 본인 키를 넣는다 (5-4, 5-5 참고)
+   - 이 파일은 `.gitignore`에 등록되어 있어 커밋되지 않는다
 
 > ✅ 무료 티어: Gemini 2.0 Flash 기준 **하루 1,500회** 요청 가능. 신용카드 불필요.
+> ⚠️ `application-secret.yml`은 절대 깃에 커밋하지 않는다. 키가 노출되면 즉시 AI Studio에서 해당 키를 삭제하고 재발급한다.
 
 ---
 
@@ -433,7 +442,7 @@ curl http://localhost:8080/api/picker/pick  # picker 도메인
 curl http://localhost:8080/api/ai/history   # aipicker 도메인
 
 # 4. 프론트엔드 실행 (VS Code 터미널에서 npm run dev)
-# 브라우저에서 http://localhost:3001 확인
+# 브라우저에서 http://localhost:3000 확인
 ```
 
 ### 자주 발생하는 문제

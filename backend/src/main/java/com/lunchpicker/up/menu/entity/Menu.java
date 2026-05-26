@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static lombok.AccessLevel.PROTECTED;
@@ -37,28 +36,35 @@ public class Menu {
 
     private String imageUrl;
 
-    private LocalDate lastEatenAt;
+    private LocalDateTime lastEatenAt;
 
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    // TODO: Dev A - 팩토리 메서드 구현
     public static Menu create(String name, String restaurantName, String category,
                               String priceRange, String distance, String imageUrl) {
         Menu menu = new Menu();
-        // TODO: Dev A
+        menu.name = name;
+        menu.restaurantName = restaurantName;
+        menu.category = category;
+        menu.priceRange = priceRange;
+        menu.distance = distance;
+        menu.imageUrl = imageUrl;
         return menu;
     }
 
-    // TODO: Dev A - 메뉴 정보 수정
     public void update(String name, String restaurantName, String category,
                        String priceRange, String distance, String imageUrl) {
-        // TODO: Dev A
+        this.name = name;
+        this.restaurantName = restaurantName;
+        this.category = category;
+        this.priceRange = priceRange;
+        this.distance = distance;
+        this.imageUrl = imageUrl;
     }
 
-    // TODO: Dev A - 오늘 먹었어요 처리
     public void updateLastEatenAt() {
-        // TODO: Dev A
+        this.lastEatenAt = LocalDateTime.now();
     }
 }

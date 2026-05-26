@@ -26,7 +26,7 @@
 
 ## 2. 서비스 구성
 
-3개의 독립 서비스로 구성된다. **Dev B, Dev C는 `menu_db`를 읽기 전용으로 공유**하며, 별도 API 호출 없이 DB에서 직접 데이터를 조회한다.
+단일 백엔드 + 단일 프론트엔드로 구성하고, 3개 도메인을 URL/라우트로 구분한다. **모든 도메인은 단일 `menu_db`를 공유**하며, 서비스 간 HTTP 호출 없이 DB에서 직접 데이터를 조회한다.
 
 ```
 ┌──────────────────────────────────────────────────────────┐
@@ -37,11 +37,10 @@
 │  /api/ai/*                       → aipicker패키지 (Dev C) │
 └──────────────────────┬───────────────────────────────────┘
                        │
-          ┌────────────┴────────────┐
-          ▼                         ▼
-       menu_db                   ai_db
-  (Dev A 읽기/쓰기)          (Dev C 읽기/쓰기)
-  (Dev B,C 읽기전용)
+                       ▼
+                    menu_db
+        (단일 DB — 전체 도메인 공유)
+   menu: 읽기/쓰기  ·  picker: 읽기전용  ·  aipicker: 읽기/쓰기
 
 ┌──────────────────────────────────────────────────────────┐
 │            React 단일 프론트엔드 (Port 3000)              │
@@ -68,7 +67,7 @@ sql/
 
 ---
 
-### 3-1. 🍱 메뉴 관리 서비스 (Dev A) — Port 3001
+### 3-1. 🍱 메뉴 관리 서비스 (Dev A) — 라우트 `/`, `/menus/:id`
 
 #### 기능 목록
 
@@ -95,16 +94,16 @@ price_range     VARCHAR(20)  NOT NULL   -- 1만원이하 | 1~2만원 | 2만원�
 distance        VARCHAR(20)  NOT NULL   -- 도보5분 | 도보10분 | 배달가능
 image_url       VARCHAR(500)            -- 사진 URL (선택)
 last_eaten_at   DATETIME                -- 마지막으로 먹은 날짜
-created_at      DATETIME DEFAULT NOW()
+created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
 
 -- reviews 테이블
-id           INTEGER PRIMARY KEY AUTOINCREMENT
-menu_id      INTEGER NOT NULL        -- menus.id 참조
-nickname     TEXT NOT NULL           -- 작성자 이름
-pin          TEXT NOT NULL           -- 4자리 숫자 (평문 저장, 학습용)
-rating       INTEGER NOT NULL        -- 1 ~ 5
+id           BIGINT AUTO_INCREMENT PRIMARY KEY
+menu_id      BIGINT NOT NULL         -- menus.id 참조 (FK, ON DELETE CASCADE)
+nickname     VARCHAR(50) NOT NULL    -- 작성자 이름
+pin          CHAR(4) NOT NULL        -- 4자리 숫자 (평문 저장, 학습용)
+rating       TINYINT NOT NULL        -- 1 ~ 5
 comment      TEXT                    -- 한줄평 (선택)
-created_at   DATETIME DEFAULT now()
+created_at   DATETIME DEFAULT CURRENT_TIMESTAMP
 ```
 
 #### API 엔드포인트
@@ -128,7 +127,7 @@ created_at   DATETIME DEFAULT now()
 
 ---
 
-### 3-2. 🎲 오늘의 메뉴 뽑기 서비스 (Dev B) — Port 3002
+### 3-2. 🎲 오늘의 메뉴 뽑기 서비스 (Dev B) — 라우트 `/picker`
 
 #### 기능 목록
 
@@ -194,7 +193,7 @@ HAVING avg_rating >= :minRating   -- 상관없음이면 조건 제외 (NULL 포�
 
 ---
 
-### 3-3. 🤖 AI 메뉴 추천 서비스 (Dev C) — Port 3003
+### 3-3. 🤖 AI 메뉴 추천 서비스 (Dev C) — 라우트 `/ai`
 
 #### 기능 목록
 
@@ -216,12 +215,12 @@ HAVING avg_rating >= :minRating   -- 상관없음이면 조건 제외 (NULL 포�
 #### 데이터 모델
 
 ```sql
--- ai_recommendations 테이블 (ai_db)
+-- ai_recommendations 테이블 (menu_db)
 id            BIGINT AUTO_INCREMENT PRIMARY KEY
 user_input    TEXT         NOT NULL        -- 사용자 자연어 입력
-created_at    DATETIME     DEFAULT NOW()
+created_at    DATETIME     DEFAULT CURRENT_TIMESTAMP
 
--- ai_recommendation_results 테이블 (ai_db)
+-- ai_recommendation_results 테이블 (menu_db)
 id                BIGINT AUTO_INCREMENT PRIMARY KEY
 recommendation_id BIGINT       NOT NULL   -- ai_recommendations.id 참조
 rank              INT          NOT NULL   -- 1, 2, 3
@@ -282,7 +281,7 @@ reason            TEXT                   -- AI 추천 이유
 | JDK | Java 17 | LTS 버전 |
 | 빌드 도구 | Gradle | |
 | ORM | Spring Data JPA + Hibernate | |
-| DB | MySQL 8.x | 서비스별 독립 스키마 사용 |
+| DB | MySQL 8.x | 단일 `menu_db` 공유 |
 | 프론트엔드 | React 18 + Vite | |
 | 라우팅 | React Router v6 | SPA 라우팅 |
 | 상태 관리 | Zustand | 가볍고 boilerplate 적음, 학습 비용 낮음 |
@@ -301,11 +300,10 @@ reason            TEXT                   -- AI 추천 이유
 
 ### DB 스키마 구성
 
-`menu_db`는 Dev A가 소유하고 Dev B, Dev C가 읽기 전용으로 공유한다. `ai_db`는 Dev C 전용이다.
+전체 도메인이 단일 `menu_db` 하나를 공유한다. 별도 DB는 없다. menu/picker/aipicker의 모든 테이블이 `menu_db` 안에 함께 존재한다.
 
 ```sql
-CREATE DATABASE menu_db;   -- Dev A 소유 / Dev B, Dev C 읽기 전용 공유
-CREATE DATABASE ai_db;     -- Dev C 전용
+CREATE DATABASE menu_db;   -- 전체 도메인 공유 (menu / picker / aipicker)
 ```
 
 ---
@@ -314,51 +312,55 @@ CREATE DATABASE ai_db;     -- Dev C 전용
 
 ```
 lunch-picker/
+├── CLAUDE.md
+├── README.md
 ├── PRD.md
-├── ARCHITECTURE.md
-├── API_SPEC.md
-├── ERD.md
-├── CONVENTION.md
-├── SETUP.md
+├── docker-compose.yml
+├── docs/
+│   ├── CONVENTIONS.md
+│   ├── SETUP.md
+│   ├── PRE_SETUP_CHECKLIST.md
+│   └── design/
+│       ├── erd.md
+│       └── api-spec.md
 ├── sql/
 │   ├── 01_schema.sql              # DB/테이블 생성 DDL
 │   └── 02_sample_data.sql         # 메뉴 20개 + 리뷰 샘플 데이터
-└── services/
-    ├── menu-service/                  # Dev A
-    │   ├── backend/                   # Spring Boot (Port 8081)
-    │   │   ├── build.gradle
-    │   │   └── src/main/java/...
-    │   └── frontend/                  # React + Vite (Port 3001)
-    │       ├── package.json
-    │       └── src/
-    ├── picker-service/                # Dev B
-    │   ├── backend/                   # Spring Boot (Port 8082)
-    │   └── frontend/                  # React + Vite (Port 3002)
-    └── ai-service/                    # Dev C
-        ├── backend/                   # Spring Boot (Port 8083)
-        └── frontend/                  # React + Vite (Port 3003)
+├── backend/                       # Spring Boot 단일 프로젝트 (Port 8080)
+│   ├── build.gradle
+│   └── src/main/java/com/lunchpicker/up/
+│       ├── menu/                  # Dev A
+│       ├── picker/                # Dev B
+│       ├── aipicker/              # Dev C
+│       └── common/
+└── frontend/                      # React + Vite 단일 프로젝트 (Port 3000)
+    ├── package.json
+    └── src/
+        ├── api/                   # 도메인별 API 함수
+        ├── components/            # 도메인별 컴포넌트
+        ├── hooks/                 # 도메인별 훅
+        ├── pages/                 # 도메인별 페이지
+        └── store/                 # 도메인별 Zustand 스토어
 ```
+
+> 백엔드 패키지 구조와 프론트 디렉토리 구조 상세는 `CLAUDE.md` 참고.
 
 ---
 
 ## 6. 서비스 간 연동 규칙
 
-- Dev B, Dev C는 `menu_db`에 **읽기 전용**으로 접속한다 (INSERT / UPDATE / DELETE 금지)
-- 서비스 간 HTTP API 호출은 하지 않는다 — DB 직접 조회로 대체
-- `menu_id`는 숫자로만 참조하며 FK 제약을 걸지 않는다 (ai_db → menu_db 물리적 FK 없음)
+- picker, aipicker는 menu/reviews 테이블에 **읽기 전용**으로 접근한다 (INSERT / UPDATE / DELETE 금지). aipicker는 자신의 `ai_recommendations` / `ai_recommendation_results` 테이블에만 쓰기 가능
+- 도메인 간 HTTP API 호출 및 직접 Service 호출은 하지 않는다 — DB 직접 조회로 대체
+- `ai_recommendation_results.menu_id`는 `menus.id`를 숫자로만 참조하며 FK 제약을 걸지 않는다 (메뉴 삭제 시 히스토리 보존을 위해 `menu_name` 스냅샷 저장)
 - DB 접속 계정은 PM/PL이 사전에 생성해서 배포한다
 
 ```sql
--- PM/PL이 준비하는 DB 계정
-CREATE USER 'menu_writer'@'localhost' IDENTIFIED BY 'password';
-GRANT ALL PRIVILEGES ON menu_db.* TO 'menu_writer'@'localhost';    -- Dev A용
-
-CREATE USER 'menu_reader'@'localhost' IDENTIFIED BY 'password';
-GRANT SELECT ON menu_db.* TO 'menu_reader'@'localhost';            -- Dev B, Dev C용
-
-CREATE USER 'ai_writer'@'localhost' IDENTIFIED BY 'password';
-GRANT ALL PRIVILEGES ON ai_db.* TO 'ai_writer'@'localhost';        -- Dev C용
+-- PM/PL이 준비하는 DB 계정 (단일 계정, 전체 도메인 공용)
+CREATE USER 'lunchpicker'@'%' IDENTIFIED BY '1234';
+GRANT ALL PRIVILEGES ON menu_db.* TO 'lunchpicker'@'%';
 ```
+
+> picker의 읽기 전용 제약은 DB 권한이 아닌 **애플리케이션 코드 규칙**으로 지킨다 (단일 계정 공유).
 
 ---
 
@@ -398,4 +400,4 @@ GRANT ALL PRIVILEGES ON ai_db.* TO 'ai_writer'@'localhost';        -- Dev C용
 
 ---
 
-*문서 작성: PM/PL | 버전: v1.4*
+*문서 작성: PM/PL | 버전: v1.5*

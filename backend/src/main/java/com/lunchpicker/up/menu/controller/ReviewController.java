@@ -1,7 +1,9 @@
 package com.lunchpicker.up.menu.controller;
 
 import com.lunchpicker.up.common.ApiResponse;
+import com.lunchpicker.up.menu.dto.PinRequest;
 import com.lunchpicker.up.menu.dto.ReviewRequest;
+import com.lunchpicker.up.menu.dto.ReviewUpdateRequest;
 import com.lunchpicker.up.menu.dto.ReviewResponse;
 import com.lunchpicker.up.menu.service.ReviewService;
 import jakarta.validation.Valid;
@@ -31,14 +33,14 @@ public class ReviewController {
 
     @PutMapping("/api/reviews/{id}")
     public ApiResponse<ReviewResponse> updateReview(@PathVariable Long id,
-                                                    @Valid @RequestBody ReviewRequest request) {
+                                                    @Valid @RequestBody ReviewUpdateRequest request) {
         return ApiResponse.ok(reviewService.updateReview(id, request));
     }
 
     @DeleteMapping("/api/reviews/{id}")
     public ApiResponse<Void> deleteReview(@PathVariable Long id,
-                                          @RequestParam String pin) {
-        reviewService.deleteReview(id, pin);
+                                          @Valid @RequestBody PinRequest request) {
+        reviewService.deleteReview(id, request.pin());
         return ApiResponse.ok(null);
     }
 }

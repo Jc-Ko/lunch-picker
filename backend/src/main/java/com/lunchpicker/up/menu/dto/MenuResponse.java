@@ -1,6 +1,5 @@
 package com.lunchpicker.up.menu.dto;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record MenuResponse(
@@ -11,7 +10,7 @@ public record MenuResponse(
         String priceRange,
         String distance,
         String imageUrl,
-        LocalDate lastEatenAt,
+        LocalDateTime lastEatenAt,
         Double avgRating,
         Long reviewCount,
         LocalDateTime createdAt

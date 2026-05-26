@@ -2,7 +2,7 @@ package com.lunchpicker.up.picker.dto;
 
 import java.time.LocalDateTime;
 
-public record PickerResponse(
+public record PickerMenuDto(
         Long id,
         String name,
         String restaurantName,
