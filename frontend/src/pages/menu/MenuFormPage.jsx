@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useMenu, useCreateMenu, useUpdateMenu } from '../../hooks/useMenus'
-
-const CATEGORIES = ['한식', '양식', '중식']
-const PRICE_RANGES = ['1만원이하', '1~2만원', '2만원이상']
-const DISTANCES = ['도보5분', '도보10분', '배달가능']
+import { useCommonCodes } from '../../hooks/useCommonCodes'
 
 const EMPTY_FORM = {
   name: '',
@@ -27,6 +24,10 @@ export default function MenuFormPage() {
   const createMenu = useCreateMenu()
   const updateMenu = useUpdateMenu()
 
+  const { data: categories = [] } = useCommonCodes('category')
+  const { data: priceRanges = [] } = useCommonCodes('price_range')
+  const { data: distances = [] } = useCommonCodes('distance')
+
   const [form, setForm] = useState(EMPTY_FORM)
   const [validationError, setValidationError] = useState('')
 
@@ -35,9 +36,9 @@ export default function MenuFormPage() {
       setForm({
         name: existing.name ?? '',
         restaurantName: existing.restaurantName ?? '',
-        category: existing.category ?? '',
-        priceRange: existing.priceRange ?? '',
-        distance: existing.distance ?? '',
+        category: existing.category?.code ?? '',
+        priceRange: existing.priceRange?.code ?? '',
+        distance: existing.distance?.code ?? '',
         imageUrl: existing.imageUrl ?? '',
       })
     }
@@ -114,7 +115,7 @@ export default function MenuFormPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">카테고리 *</label>
           <select name="category" value={form.category} onChange={handleChange} className={inputClass + ' bg-white'}>
             <option value="">선택</option>
-            {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+            {categories.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
           </select>
         </div>
 
@@ -122,7 +123,7 @@ export default function MenuFormPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">가격대 *</label>
           <select name="priceRange" value={form.priceRange} onChange={handleChange} className={inputClass + ' bg-white'}>
             <option value="">선택</option>
-            {PRICE_RANGES.map(p => <option key={p} value={p}>{p}</option>)}
+            {priceRanges.map(p => <option key={p.code} value={p.code}>{p.label}</option>)}
           </select>
         </div>
 
@@ -130,7 +131,7 @@ export default function MenuFormPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">거리 *</label>
           <select name="distance" value={form.distance} onChange={handleChange} className={inputClass + ' bg-white'}>
             <option value="">선택</option>
-            {DISTANCES.map(d => <option key={d} value={d}>{d}</option>)}
+            {distances.map(d => <option key={d.code} value={d.code}>{d.label}</option>)}
           </select>
         </div>
 

@@ -26,13 +26,13 @@ export default function MenuCard({ menu }) {
 
         <div className="flex flex-wrap gap-1 mb-3">
           <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
-            {menu.category}
+            {menu.category?.label}
           </span>
           <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-            {menu.priceRange}
+            {menu.priceRange?.label}
           </span>
           <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-            {menu.distance}
+            {menu.distance?.label}
           </span>
         </div>
 
