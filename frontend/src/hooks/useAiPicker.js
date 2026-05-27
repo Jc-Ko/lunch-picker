@@ -19,3 +19,11 @@ export function useAiHistory(limit) {
     select: (res) => res.data.data,
   })
 }
+
+export function useDeleteHistory() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => aiApi.deleteHistory(),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['aiHistory'] }),
+  })
+}

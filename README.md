@@ -1,61 +1,38 @@
-# 🍱 오늘 뭐 먹지?
+# 🍱 오늘 뭐 먹지? — 팀 점심 메뉴 서비스
 
-> 팀 점심 메뉴 추천 서비스 — 바이브코딩 학습 프로젝트
+매일 반복되는 "오늘 뭐 먹지?" 고민을 덜어주는 팀 점심 메뉴 서비스입니다.
+메뉴를 등록·평가하고, 조건에 맞는 메뉴를 랜덤으로 뽑거나, AI에게 자연어로 추천을 받을 수 있습니다.
 
----
-
-## 프로젝트 소개
-
-매일 반복되는 "오늘 뭐 먹지?" 고민을 해결하는 서비스입니다.
-메뉴를 등록하고 별점을 남기고, 조건에 따라 랜덤으로 뽑거나 AI에게 추천받을 수 있습니다.
-
-**이 프로젝트는 실무형 바이브코딩 학습을 목적으로 합니다.**
-완성도보다 흐름과 경험을 중시하며, AI 코딩 툴(Cursor / Claude Code / GitHub Copilot)을 활용해 개발합니다.
+> 바이브코딩 학습 프로젝트입니다. 완성도보다 개발 흐름과 AI 코딩 툴 활용 경험을 중시합니다.
 
 ---
 
-## 서비스 구성
+## 주요 기능
 
-| 도메인 | 설명 | 담당 | 백엔드 URL | 프론트 라우트 |
-|--------|------|------|-----------|--------------|
-| 🍱 **메뉴 관리** | 메뉴 CRUD + 별점·한줄평 | Dev A | `/api/menus` | `/`, `/menus/:id` |
-| 🎲 **오늘의 메뉴 뽑기** | 조건 기반 랜덤 추천 | Dev B | `/api/picker` | `/picker` |
-| 🤖 **AI 메뉴 추천** | 자연어 입력 → TOP 3 추천 | Dev C | `/api/ai` | `/ai` |
+서비스는 3개 도메인으로 구성되며, 단일 백엔드와 단일 프론트엔드 위에서 URL/라우트로 구분됩니다.
 
-- 백엔드: `http://localhost:8080`
-- 프론트엔드: `http://localhost:3000`
+| 도메인 | 설명 | 라우트 |
+|--------|------|--------|
+| 🍱 메뉴 관리 | 메뉴 CRUD, 별점·한줄평 작성 (PIN 기반 수정/삭제) | `/`, `/menus/:id` |
+| 🎲 오늘의 메뉴 뽑기 | 카테고리·별점·가격·거리 조건으로 랜덤 메뉴 1개 추천 | `/picker` |
+| 🤖 AI 메뉴 추천 | 자연어 입력을 분석해 메뉴 TOP 3 추천 + 히스토리 | `/ai` |
 
 ---
 
 ## 기술 스택
 
-**Backend**
-- Java 17 / Spring Boot 3.5.14 / Gradle
-- Spring Data JPA + Hibernate
-- MySQL 8.x
+| 구분 | 스택 |
+|------|------|
+| 백엔드 | Spring Boot 3.5.14, Java 17, Gradle |
+| ORM | Spring Data JPA + Hibernate |
+| DB | MySQL 8.x (단일 `menu_db`) |
+| 프론트엔드 | React 18 + Vite |
+| 라우팅 / 상태 관리 | React Router v6, Zustand, TanStack Query |
+| 스타일 | Tailwind CSS v3 |
+| HTTP 클라이언트 | Axios |
+| AI API | Google Gemini 2.5 Flash |
 
-**Frontend**
-- React 18 + Vite
-- React Router v6 / Zustand / TanStack Query / Axios
-- Tailwind CSS v3
-
-**AI**
-- Google Gemini 2.0 Flash API
-
-**Infrastructure**
-- Docker Desktop + Docker Compose (MySQL)
-- WSL2 Ubuntu 24.04 (소스코드 위치)
-
----
-
-## 팀 구성
-
-| 역할 | 담당 도메인 |
-|------|------------|
-| PM/PL | 프로젝트 설계, 문서, 환경 세팅 |
-| Dev A | 🍱 menu 도메인 |
-| Dev B | 🎲 picker 도메인 |
-| Dev C | 🤖 aipicker 도메인 |
+**포트** — 백엔드 `8080` / 프론트엔드 `3000` / MySQL `3306`
 
 ---
 
@@ -63,154 +40,103 @@
 
 ```
 lunch-picker/
-├── CLAUDE.md                          # AI 코딩 툴 가이드
-├── README.md                          # 이 파일
-├── PRD.md                             # 제품 요구사항 정의서
-├── docker-compose.yml                 # MySQL 컨테이너 설정
-├── docs/
-│   ├── CONVENTIONS.md                 # 개발 컨벤션
-│   ├── SETUP.md                       # 로컬 환경 세팅 가이드
-│   ├── PRE_SETUP_CHECKLIST.md         # Day 1 전 사전 설치 체크리스트
-│   └── design/
-│       ├── erd.md                     # DB 설계
-│       └── api-spec.md                # API 명세
-├── sql/
-│   ├── 01_schema.sql                  # DB/테이블 DDL
-│   └── 02_sample_data.sql             # 샘플 데이터 (메뉴 16개 + 리뷰 60개)
-├── backend/                           # Spring Boot 단일 프로젝트 (Port 8080)
-│   ├── build.gradle
-│   ├── settings.gradle
+├── docs/                  # 설계 및 컨벤션 문서
+│   └── design/            # ERD, API 스펙
+├── sql/                   # DB 스키마 + 샘플 데이터
+├── backend/               # Spring Boot 단일 프로젝트
 │   └── src/main/java/com/lunchpicker/up/
-│       ├── LunchPickerApplication.java
-│       ├── menu/                      # Dev A
-│       ├── picker/                    # Dev B
-│       ├── aipicker/                  # Dev C
-│       └── common/
-└── frontend/                          # React 단일 프로젝트 (Port 3000)
-    ├── package.json
-    ├── vite.config.js
-    └── src/
-        ├── App.jsx                    # 전체 라우트 정의
-        ├── api/                       # 도메인별 API 함수
-        ├── components/                # 도메인별 컴포넌트
-        ├── hooks/                     # TanStack Query 훅
-        ├── pages/                     # 도메인별 페이지
-        └── store/                     # Zustand 전역 상태
+│       ├── menu/          # 메뉴 관리 도메인
+│       ├── picker/        # 메뉴 뽑기 도메인
+│       ├── aipicker/      # AI 추천 도메인
+│       └── common/        # 공통 응답·예외·설정
+└── frontend/              # React + Vite 단일 프로젝트
+    └── src/               # api · components · hooks · pages · store (도메인별 분리)
 ```
+
+도메인은 별도 프로젝트가 아니라 단일 백엔드의 패키지, 단일 프론트의 디렉토리로 구분됩니다.
 
 ---
 
-## 빠른 시작
+## 실행 방법
 
-### 사전 요구사항
+사전 준비물(WSL2, Node.js, Docker Desktop, JDK 17 등)과 상세 절차는 `docs/SETUP.md`를 참고하세요.
 
-- Windows 10 21H2 이상 / Windows 11
-- WSL2 + Ubuntu 24.04
-- Docker Desktop (WSL Integration ON)
-- JDK 17
-- Node.js 20.x (WSL 내)
-
-> 상세 설치 가이드 → [`docs/PRE_SETUP_CHECKLIST.md`](docs/PRE_SETUP_CHECKLIST.md)
-> 상세 설정 가이드 → [`docs/SETUP.md`](docs/SETUP.md)
-
----
-
-### 1. 저장소 클론
-
-```bash
-# WSL Ubuntu 터미널
-cd ~
-git clone git@github.com:{org}/lunch-picker.git
-cd lunch-picker
-```
-
-### 2. MySQL 실행
+### 1. 데이터베이스 (Docker)
 
 ```bash
 # 프로젝트 루트에서
 docker compose up -d
-
-# 초기화 확인 (menus 16개)
-docker exec -it lunch-picker-mysql \
-  mysql -u root -prootpassword -e "USE menu_db; SELECT COUNT(*) FROM menus;"
 ```
 
-### 3. 백엔드 실행
+`sql/01_schema.sql`(스키마)과 `sql/02_sample_data.sql`(샘플 데이터)이 컨테이너 최초 실행 시 자동 적용됩니다.
 
-IntelliJ에서 `backend/` 폴더를 열고 `LunchPickerApplication` 실행.
+### 2. 백엔드
 
+```bash
+cd backend
+./gradlew bootRun
 ```
-http://localhost:8080/api/menus  →  메뉴 목록 확인
-```
 
-> Dev C는 IntelliJ Run Configuration에 `GEMINI_API_KEY` 환경변수 설정 필요
+> AI 추천 기능(aipicker)을 사용하려면 `backend/src/main/resources/application-secret.yml`에
+> 본인의 Gemini API 키가 필요합니다. 키 발급 방법은 `docs/SETUP.md` 7번 항목을 참고하세요.
+> 이 파일은 `.gitignore`에 등록되어 커밋되지 않습니다.
 
-### 4. 프론트엔드 실행
+### 3. 프론트엔드
 
 ```bash
 cd frontend
-npm install
+npm install   # 최초 1회
 npm run dev
 ```
 
-```
-http://localhost:3000  →  메인 화면 확인
-```
+브라우저에서 `http://localhost:3000` 으로 접속합니다.
 
 ---
 
-## DB 구성
+## API 요약
 
-```
-MySQL (Docker, Port 3306)
-└── menu_db
-    ├── menus                     # 메뉴 16개 샘플
-    ├── reviews                   # 리뷰 60개 샘플
-    ├── ai_recommendations        # AI 추천 요청 히스토리
-    └── ai_recommendation_results # AI 추천 결과 TOP 3
-```
+모든 API는 인증 없이 호출 가능하며, 공통 응답 래퍼 `ApiResponse<T>`로 응답합니다.
+Base URL은 `http://localhost:8080` 입니다.
 
-**샘플 데이터 평균 별점 분포**
+| 도메인 | Method | Path | 설명 |
+|--------|--------|------|------|
+| menu | GET | /api/menus | 메뉴 목록 조회 (카테고리·가격·거리 필터) |
+| menu | GET | /api/menus/{id} | 메뉴 단건 조회 |
+| menu | POST | /api/menus | 메뉴 등록 |
+| menu | PUT | /api/menus/{id} | 메뉴 수정 |
+| menu | DELETE | /api/menus/{id} | 메뉴 삭제 |
+| menu | PATCH | /api/menus/{id}/eat | 오늘 먹었어요 |
+| menu | GET | /api/menus/{id}/reviews | 리뷰 목록 조회 |
+| menu | POST | /api/menus/{id}/reviews | 리뷰 작성 |
+| menu | PUT | /api/reviews/{id} | 리뷰 수정 (PIN 검증) |
+| menu | DELETE | /api/reviews/{id} | 리뷰 삭제 (PIN 검증) |
+| picker | GET | /api/picker/pick | 조건 기반 랜덤 메뉴 뽑기 |
+| aipicker | POST | /api/ai/recommend | AI 자연어 메뉴 추천 (TOP 3) |
+| aipicker | GET | /api/ai/history | AI 추천 히스토리 조회 |
 
-| | 4점대 (상) | 4점대 (하) | 3점대 | 2점대 |
-|--|-----------|-----------|------|------|
-| 한식 | 김치찌개 4.4 | 삼겹살 4.0 | 된장찌개 3.2 | 비빔밥 2.4 |
-| 양식 | 스테이크 4.6 | 파스타 4.2 | 샌드위치 3.4 | 피자 2.6 |
-| 중식 | 마라탕 4.8 | 짬뽕 4.0 | 짜장면 3.0 | 탕수육 2.2 |
-
----
-
-## 개발 일정
-
-| Day | 내용 |
-|-----|------|
-| Day 1 | 설계 설명 + 환경 세팅 + AI 툴 시연 |
-| Day 2 | 바이브코딩 — 백엔드 API + 기본 UI |
-| Day 3 | 바이브코딩 — UI 완성 + 통합 |
-| Day 4 | 데모 + 기술 회고 + AI 툴 경험 공유 |
+상세 요청/응답 스펙은 `docs/design/api-spec.md`를 참고하세요.
 
 ---
 
-## 주요 문서
+## 참고 문서
 
-| 문서 | 경로 | 설명 |
-|------|------|------|
-| PRD | [`PRD.md`](PRD.md) | 제품 요구사항 |
-| ERD | [`docs/design/erd.md`](docs/design/erd.md) | DB 설계 |
-| API 명세 | [`docs/design/api-spec.md`](docs/design/api-spec.md) | 엔드포인트 |
-| 컨벤션 | [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | 코딩 규칙 |
-| 환경 세팅 | [`docs/SETUP.md`](docs/SETUP.md) | 로컬 설정 |
-| AI 가이드 | [`CLAUDE.md`](CLAUDE.md) | AI 툴 컨텍스트 |
+| 문서 | 경로 |
+|------|------|
+| 제품 요구사항 | `PRD.md` |
+| AI 작업 가이드 / 프로젝트 컨텍스트 | `CLAUDE.md` |
+| 환경 세팅 가이드 | `docs/SETUP.md` |
+| 코딩 컨벤션 | `docs/CONVENTIONS.md` |
+| ERD | `docs/design/erd.md` |
+| API 스펙 | `docs/design/api-spec.md` |
 
 ---
 
-## Known Issues
+## 범위 안내
 
-처음부터 구현하지 않는 것들:
+학습 프로젝트로서 다음은 의도적으로 구현하지 않았습니다.
 
-- 이미지 파일 업로드 (URL 입력만 가능)
-- PIN 암호화 (평문 저장)
-- 에러 페이지
-- 반응형 디자인 (데스크탑만)
+- 로그인 / 회원가입 등 인증
+- 배포 (로컬 실행 전용)
 - 테스트 코드
-- 배포 설정
+- 이미지 파일 업로드 (URL 입력만 지원)
+- 반응형 디자인 (데스크탑 기준)

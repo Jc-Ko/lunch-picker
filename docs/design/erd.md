@@ -1,6 +1,6 @@
 # ERD.md — 데이터베이스 설계
 
-> 최종 수정: v1.1
+> 최종 수정: v1.2
 > 상세 DDL → `sql/01_schema.sql` | 샘플 데이터 → `sql/02_sample_data.sql`
 
 ---
@@ -127,6 +127,7 @@ GROUP BY m.id;
 │ PK  id            BIGINT             │
 │     user_input    TEXT               │
 │     created_at    DATETIME           │
+│     deleted_at    DATETIME           │
 └────────────────────┬─────────────────┘
                      │ 1
                      │
@@ -150,6 +151,12 @@ GROUP BY m.id;
 | `id` | BIGINT | NO | AUTO_INCREMENT | PK |
 | `user_input` | TEXT | NO | — | 사용자 자연어 입력 원문 |
 | `created_at` | DATETIME | NO | CURRENT_TIMESTAMP | 요청 일시 |
+| `deleted_at` | DATETIME | YES | NULL | 히스토리 삭제 시각 (soft delete). NULL이면 미삭제 |
+
+**히스토리 삭제 방식 (soft delete)**
+- 히스토리 삭제 시 행을 물리적으로 DELETE하지 않고 `deleted_at`에 삭제 시각을 기록한다.
+- 히스토리 조회는 `deleted_at IS NULL`인 행만 반환한다.
+- `ai_recommendation_results`에는 별도 `deleted_at`을 두지 않는다. 부모 `ai_recommendations`의 `deleted_at`으로 삭제 여부를 판단한다.
 
 ---
 
@@ -181,5 +188,5 @@ GROUP BY m.id;
 - **AUTO_INCREMENT**: 모든 PK는 BIGINT AUTO_INCREMENT 사용
 - **DATETIME**: 타임존 없이 서버 로컬 시간 저장 (학습용 프로젝트)
 - **ddl-auto: none**: Spring Boot에서 테이블 자동 생성 비활성화. `sql/01_schema.sql`로만 관리
-- **Soft delete 없음**: 삭제 시 실제 DELETE. (학습 범위 초과)
+- **Soft delete**: 기본적으로 삭제 시 실제 DELETE한다. 예외로 `ai_recommendations`만 soft delete를 사용한다 (`deleted_at` 컬럼). 그 외 테이블은 물리적 삭제다.
 - **Audit 컬럼**: `created_at`만 관리. `updated_at` 없음 (학습 범위)

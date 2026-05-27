@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -69,7 +70,7 @@ public class AiPickerService {
     public List<AiRecommendResponse> getHistory(int limit) {
         int cappedLimit = Math.min(limit, 50);
         List<AiRecommendation> recommendations = aiRecommendationRepository
-                .findAllByOrderByCreatedAtDesc(PageRequest.of(0, cappedLimit));
+                .findAllByDeletedAtIsNullOrderByCreatedAtDesc(PageRequest.of(0, cappedLimit));
 
         List<Long> allMenuIds = recommendations.stream()
                 .flatMap(r -> r.getResults().stream().map(AiRecommendationResult::getMenuId))
@@ -80,6 +81,11 @@ public class AiPickerService {
         return recommendations.stream()
                 .map(r -> toResponse(r, menuMap))
                 .toList();
+    }
+
+    @Transactional
+    public void deleteHistory() {
+        aiRecommendationRepository.softDeleteAll(LocalDateTime.now());
     }
 
     private String buildPrompt(List<AiMenuDto> menus, String userInput) {

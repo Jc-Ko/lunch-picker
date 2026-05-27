@@ -713,6 +713,36 @@ GET /api/ai/history?limit=10
 
 ---
 
+### 3-3. 추천 히스토리 삭제
+
+```
+DELETE /api/ai/history
+```
+
+추천 히스토리 전체를 삭제한다. 실제 행을 제거하지 않고 soft delete로 처리한다 (`ai_recommendations.deleted_at`에 삭제 시각을 기록). 삭제된 히스토리는 `GET /api/ai/history` 조회 결과에서 제외된다.
+
+**Query Parameters**
+
+없음.
+
+**요청 예시**
+```
+DELETE /api/ai/history
+```
+
+**응답 예시**
+```json
+{
+  "success": true,
+  "data": null,
+  "message": null
+}
+```
+
+> 이미 삭제된(미삭제 히스토리가 없는) 상태에서 호출해도 정상 응답한다.
+
+---
+
 ## 4. CORS 설정
 
 `common/config/CorsConfig.java`에 프론트엔드 origin을 허용한다.
@@ -742,3 +772,4 @@ GET /api/ai/history?limit=10
 | picker | GET | /api/picker/pick | 조건 기반 랜덤 뽑기 |
 | ai | POST | /api/ai/recommend | AI 자연어 추천 |
 | ai | GET | /api/ai/history | 추천 히스토리 조회 |
+| ai | DELETE | /api/ai/history | 추천 히스토리 전체 삭제 (soft delete) |

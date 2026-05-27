@@ -28,6 +28,9 @@ public class AiRecommendation {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
+    @Column
+    private LocalDateTime deletedAt;
+
     @OneToMany(mappedBy = "recommendation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AiRecommendationResult> results = new ArrayList<>();
 

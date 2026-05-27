@@ -1,13 +1,19 @@
 import { useState } from 'react'
 import useAiPickerStore from '../../store/useAiPickerStore'
-import { useRecommend, useAiHistory } from '../../hooks/useAiPicker'
+import { useRecommend, useAiHistory, useDeleteHistory } from '../../hooks/useAiPicker'
 import RecommendCard from '../../components/aipicker/RecommendCard'
 
 export default function AiPickerPage() {
   const { userInput, setUserInput } = useAiPickerStore()
   const recommend = useRecommend()
+  const deleteHistory = useDeleteHistory()
   const { data: history, isLoading: historyLoading } = useAiHistory(20)
   const [expandedId, setExpandedId] = useState(null)
+
+  function handleDeleteHistory() {
+    if (!window.confirm('추천 히스토리를 모두 삭제할까요?')) return
+    deleteHistory.mutate()
+  }
 
   function handleRecommend() {
     if (!userInput.trim()) return
@@ -64,7 +70,17 @@ export default function AiPickerPage() {
 
       {/* 히스토리 */}
       <div>
-        <h2 className="text-xl font-bold text-gray-700 mb-3">추천 히스토리</h2>
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="text-xl font-bold text-gray-700">추천 히스토리</h2>
+          {history?.length > 0 && (
+            <span
+              className="text-sm text-gray-400 hover:text-red-500 cursor-pointer transition-colors"
+              onClick={handleDeleteHistory}
+            >
+              히스토리 삭제
+            </span>
+          )}
+        </div>
         {historyLoading ? (
           <p className="text-gray-400 text-sm">로딩 중...</p>
         ) : !history?.length ? (

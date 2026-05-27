@@ -29,4 +29,10 @@ public class AiPickerController {
             @RequestParam(defaultValue = "20") int limit) {
         return ApiResponse.ok(aiPickerService.getHistory(limit));
     }
+
+    @DeleteMapping("/history")
+    public ApiResponse<Void> deleteHistory() {
+        aiPickerService.deleteHistory();
+        return ApiResponse.ok(null);
+    }
 }

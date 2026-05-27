@@ -76,6 +76,7 @@ CREATE TABLE ai_recommendations (
     id          BIGINT   NOT NULL AUTO_INCREMENT,
     user_input  TEXT     NOT NULL,
     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at  DATETIME NULL     DEFAULT NULL,
 
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
