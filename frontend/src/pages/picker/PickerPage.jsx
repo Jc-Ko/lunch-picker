@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import usePickerStore from '../../store/usePickerStore'
 import { usePick } from '../../hooks/usePicker'
+import { useCommonCodes } from '../../hooks/useCommonCodes'
 import PickerStep from '../../components/picker/PickerStep'
 import PickerResultCard from '../../components/picker/PickerResultCard'
 
@@ -10,8 +11,6 @@ const RATINGS = [
   { label: '3.5 이상', value: 3.5 },
   { label: '상관없음', value: null },
 ]
-const PRICE_RANGES = ['1만원이하', '1~2만원', '2만원이상', '상관없음']
-const DISTANCES = ['도보5분', '도보10분', '배달가능', '상관없음']
 
 function OptionButton({ label, selected, onClick }) {
   return (
@@ -33,12 +32,17 @@ export default function PickerPage() {
   const { condition, setCondition } = usePickerStore()
   const [pickState, setPickState] = useState({ params: null, count: 0 })
 
-  const query = usePick(pickState.params, pickState.count)
+  const { data: categories = [] } = useCommonCodes('category')
+  const { data: priceRanges = [] } = useCommonCodes('price_range')
+  const { data: distances = [] } = useCommonCodes('distance')
 
-  const isCategoryAll =
-    !condition.category ||
-    condition.category === '전체' ||
-    condition.category === '상관없음'
+  useEffect(() => {
+    if (categories.length > 0 && Object.keys(condition.weights).length === 0) {
+      setCondition('weights', Object.fromEntries(categories.map(c => [c.code, 33])))
+    }
+  }, [categories])
+
+  const query = usePick(pickState.params, pickState.count)
 
   function handlePick() {
     setPickState(prev => ({ params: { ...condition }, count: prev.count + 1 }))
@@ -65,29 +69,32 @@ export default function PickerPage() {
 
         {condition.categoryMode === 'simple' ? (
           <div className="flex gap-2 flex-wrap">
-            {['한식', '양식', '중식', '전체'].map(cat => (
+            {categories.map(c => (
               <OptionButton
-                key={cat}
-                label={cat}
-                selected={cat === '전체' ? isCategoryAll : condition.category === cat}
-                onClick={() => setCondition('category', cat)}
+                key={c.code}
+                label={c.label}
+                selected={condition.category === c.code}
+                onClick={() => setCondition('category', c.code)}
               />
             ))}
+            <OptionButton
+              label="전체"
+              selected={!condition.category}
+              onClick={() => setCondition('category', null)}
+            />
           </div>
         ) : (
           <div className="flex items-center gap-4 flex-wrap">
-            {[
-              { key: 'koreanWeight', label: '한식' },
-              { key: 'westernWeight', label: '양식' },
-              { key: 'chineseWeight', label: '중식' },
-            ].map(({ key, label }) => (
-              <label key={key} className="flex items-center gap-2 text-sm text-gray-700">
-                <span>{label}</span>
+            {categories.map(c => (
+              <label key={c.code} className="flex items-center gap-2 text-sm text-gray-700">
+                <span>{c.label}</span>
                 <input
                   type="number"
                   min={0}
-                  value={condition[key]}
-                  onChange={e => setCondition(key, Number(e.target.value))}
+                  value={condition.weights[c.code] ?? 0}
+                  onChange={e =>
+                    setCondition('weights', { ...condition.weights, [c.code]: Number(e.target.value) })
+                  }
                   className="w-16 border border-gray-300 rounded-md px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-400"
                 />
               </label>
@@ -113,28 +120,38 @@ export default function PickerPage() {
       {/* Step 3: 가격대 */}
       <PickerStep title="Step 3. 가격대">
         <div className="flex gap-2 flex-wrap">
-          {PRICE_RANGES.map(p => (
+          {priceRanges.map(p => (
             <OptionButton
-              key={p}
-              label={p}
-              selected={condition.priceRange === p}
-              onClick={() => setCondition('priceRange', p)}
+              key={p.code}
+              label={p.label}
+              selected={condition.priceRange === p.code}
+              onClick={() => setCondition('priceRange', p.code)}
             />
           ))}
+          <OptionButton
+            label="상관없음"
+            selected={!condition.priceRange}
+            onClick={() => setCondition('priceRange', null)}
+          />
         </div>
       </PickerStep>
 
       {/* Step 4: 거리 */}
       <PickerStep title="Step 4. 거리">
         <div className="flex gap-2 flex-wrap">
-          {DISTANCES.map(d => (
+          {distances.map(d => (
             <OptionButton
-              key={d}
-              label={d}
-              selected={condition.distance === d}
-              onClick={() => setCondition('distance', d)}
+              key={d.code}
+              label={d.label}
+              selected={condition.distance === d.code}
+              onClick={() => setCondition('distance', d.code)}
             />
           ))}
+          <OptionButton
+            label="상관없음"
+            selected={!condition.distance}
+            onClick={() => setCondition('distance', null)}
+          />
         </div>
       </PickerStep>
 
