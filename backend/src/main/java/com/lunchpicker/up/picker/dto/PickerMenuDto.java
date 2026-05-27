@@ -6,12 +6,11 @@ public record PickerMenuDto(
         Long id,
         String name,
         String restaurantName,
-        String category,
-        String priceRange,
-        String distance,
+        String categoryCode,
+        String priceRangeCode,
+        String distanceCode,
         String imageUrl,
         LocalDateTime lastEatenAt,
         Double avgRating,
         Long reviewCount
-) {
-}
+) {}

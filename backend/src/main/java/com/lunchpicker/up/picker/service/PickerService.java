@@ -1,13 +1,18 @@
 package com.lunchpicker.up.picker.service;
 
+import com.lunchpicker.up.commoncode.CommonCode;
+import com.lunchpicker.up.commoncode.CommonCodeRepository;
+import com.lunchpicker.up.picker.dto.CodeItemResponse;
 import com.lunchpicker.up.picker.dto.PickerMenuDto;
 import com.lunchpicker.up.picker.dto.PickerRequest;
 import com.lunchpicker.up.picker.dto.PickerResponse;
+import com.lunchpicker.up.picker.dto.PickerWeightedRequest;
 import com.lunchpicker.up.picker.repository.PickerMenuRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -20,73 +25,128 @@ import java.util.stream.Collectors;
 public class PickerService {
 
     private final PickerMenuRepository pickerMenuRepository;
+    private final CommonCodeRepository commonCodeRepository;
     private final Random random = new Random();
 
-    public PickerResponse pick(PickerRequest request) {
-        String priceRange = blankToNull(request.priceRange());
-        String distance = blankToNull(request.distance());
+    public PickerResponse pickSimple(PickerRequest request) {
+        Map<String, CommonCode> categoryMap = loadCodeMap("category");
+        Map<String, CommonCode> priceRangeMap = loadCodeMap("price_range");
+        Map<String, CommonCode> distanceMap = loadCodeMap("distance");
 
-        if ("simple".equals(request.categoryMode())) {
-            return pickSimple(request.category(), priceRange, distance, request.minRating());
-        } else if ("weighted".equals(request.categoryMode())) {
-            return pickWeighted(request.koreanWeight(), request.westernWeight(), request.chineseWeight(),
-                    priceRange, distance, request.minRating());
-        } else {
-            throw new IllegalArgumentException("categoryMode는 simple 또는 weighted여야 합니다.");
+        String categoryCode = blankToNull(request.category());
+        String priceRangeCode = blankToNull(request.priceRange());
+        String distanceCode = blankToNull(request.distance());
+
+        if (categoryCode != null && !categoryMap.containsKey(categoryCode)) {
+            throw new IllegalArgumentException("유효하지 않은 카테고리 코드입니다: " + categoryCode);
         }
-    }
+        if (priceRangeCode != null && !priceRangeMap.containsKey(priceRangeCode)) {
+            throw new IllegalArgumentException("유효하지 않은 가격대 코드입니다: " + priceRangeCode);
+        }
+        if (distanceCode != null && !distanceMap.containsKey(distanceCode)) {
+            throw new IllegalArgumentException("유효하지 않은 거리 코드입니다: " + distanceCode);
+        }
 
-    private PickerResponse pickSimple(String category, String priceRange, String distance, Double minRating) {
-        String cat = (category == null || category.isBlank() || "전체".equals(category)) ? null : category;
-        List<PickerMenuDto> candidates = pickerMenuRepository.findFiltered(cat, priceRange, distance, minRating);
+        List<PickerMenuDto> candidates = pickerMenuRepository.findFiltered(categoryCode, priceRangeCode, distanceCode, request.minRating());
         if (candidates.isEmpty()) {
             throw new NoSuchElementException("조건에 맞는 메뉴가 없습니다");
         }
-        return toResponse(candidates.get(random.nextInt(candidates.size())));
+        return toResponse(candidates.get(random.nextInt(candidates.size())), categoryMap, priceRangeMap, distanceMap);
     }
 
-    private PickerResponse pickWeighted(Integer kw, Integer ww, Integer cw,
-                                        String priceRange, String distance, Double minRating) {
-        List<PickerMenuDto> all = pickerMenuRepository.findFiltered(null, priceRange, distance, minRating);
+    public PickerResponse pickWeighted(PickerWeightedRequest request) {
+        Map<String, CommonCode> categoryMap = loadCodeMap("category");
+        Map<String, CommonCode> priceRangeMap = loadCodeMap("price_range");
+        Map<String, CommonCode> distanceMap = loadCodeMap("distance");
 
-        Map<String, List<PickerMenuDto>> byCategory = all.stream()
-                .collect(Collectors.groupingBy(PickerMenuDto::category));
+        Map<String, Integer> weights = request.weights() != null ? request.weights() : Map.of();
 
-        int korean = (kw != null && kw > 0) ? kw : 0;
-        int western = (ww != null && ww > 0) ? ww : 0;
-        int chinese = (cw != null && cw > 0) ? cw : 0;
+        String priceRangeCode = blankToNull(request.priceRange());
+        String distanceCode = blankToNull(request.distance());
 
-        if (korean == 0 && western == 0 && chinese == 0) {
-            korean = 1; western = 1; chinese = 1;
+        for (String code : weights.keySet()) {
+            if (!categoryMap.containsKey(code)) {
+                throw new IllegalArgumentException("유효하지 않은 카테고리 코드입니다: " + code);
+            }
+        }
+        if (priceRangeCode != null && !priceRangeMap.containsKey(priceRangeCode)) {
+            throw new IllegalArgumentException("유효하지 않은 가격대 코드입니다: " + priceRangeCode);
+        }
+        if (distanceCode != null && !distanceMap.containsKey(distanceCode)) {
+            throw new IllegalArgumentException("유효하지 않은 거리 코드입니다: " + distanceCode);
         }
 
-        // 후보가 없는 카테고리는 추첨 전에 제외
-        int effectiveKorean  = byCategory.getOrDefault("한식", List.of()).isEmpty() ? 0 : korean;
-        int effectiveWestern = byCategory.getOrDefault("양식", List.of()).isEmpty() ? 0 : western;
-        int effectiveChinese = byCategory.getOrDefault("중식", List.of()).isEmpty() ? 0 : chinese;
+        List<PickerMenuDto> all = pickerMenuRepository.findFiltered(null, priceRangeCode, distanceCode, request.minRating());
+        Map<String, List<PickerMenuDto>> byCategory = all.stream()
+                .collect(Collectors.groupingBy(PickerMenuDto::categoryCode));
 
-        if (effectiveKorean == 0 && effectiveWestern == 0 && effectiveChinese == 0) {
+        Map<String, Integer> effectiveWeights = buildEffectiveWeights(weights, byCategory);
+
+        int total = effectiveWeights.values().stream().mapToInt(Integer::intValue).sum();
+        if (total == 0) {
             throw new NoSuchElementException("조건에 맞는 메뉴가 없습니다");
         }
 
-        String selectedCategory = pickCategoryByWeight(effectiveKorean, effectiveWestern, effectiveChinese);
-        List<PickerMenuDto> candidates = byCategory.get(selectedCategory);
-        return toResponse(candidates.get(random.nextInt(candidates.size())));
+        String selectedCode = pickCategoryByWeight(effectiveWeights, total);
+        List<PickerMenuDto> candidates = byCategory.get(selectedCode);
+        return toResponse(candidates.get(random.nextInt(candidates.size())), categoryMap, priceRangeMap, distanceMap);
     }
 
-    private String pickCategoryByWeight(int korean, int western, int chinese) {
-        int total = korean + western + chinese;
+    private Map<String, Integer> buildEffectiveWeights(Map<String, Integer> weights,
+                                                        Map<String, List<PickerMenuDto>> byCategory) {
+        boolean allZero = weights.isEmpty()
+                || weights.values().stream().allMatch(v -> v == null || v <= 0);
+
+        if (allZero) {
+            Map<String, Integer> equal = new LinkedHashMap<>();
+            for (String code : byCategory.keySet()) {
+                if (!byCategory.get(code).isEmpty()) {
+                    equal.put(code, 1);
+                }
+            }
+            return equal;
+        }
+
+        Map<String, Integer> result = new LinkedHashMap<>();
+        for (Map.Entry<String, Integer> e : weights.entrySet()) {
+            int w = (e.getValue() != null && e.getValue() > 0) ? e.getValue() : 0;
+            if (w > 0 && !byCategory.getOrDefault(e.getKey(), List.of()).isEmpty()) {
+                result.put(e.getKey(), w);
+            }
+        }
+        return result;
+    }
+
+    private String pickCategoryByWeight(Map<String, Integer> weights, int total) {
         int roll = random.nextInt(total);
-        if (roll < korean) return "한식";
-        if (roll < korean + western) return "양식";
-        return "중식";
+        int cumulative = 0;
+        for (Map.Entry<String, Integer> e : weights.entrySet()) {
+            cumulative += e.getValue();
+            if (roll < cumulative) return e.getKey();
+        }
+        return weights.keySet().iterator().next();
     }
 
-    private PickerResponse toResponse(PickerMenuDto dto) {
+    private Map<String, CommonCode> loadCodeMap(String codeGroup) {
+        return commonCodeRepository.findByCodeGroupOrderBySortOrderAsc(codeGroup)
+                .stream().collect(Collectors.toMap(CommonCode::getCode, c -> c));
+    }
+
+    private CodeItemResponse toCodeItemResponse(String code, Map<String, CommonCode> codeMap) {
+        CommonCode cc = codeMap.get(code);
+        return new CodeItemResponse(cc.getId(), cc.getCode(), cc.getLabel());
+    }
+
+    private PickerResponse toResponse(PickerMenuDto dto, Map<String, CommonCode> categoryMap,
+                                       Map<String, CommonCode> priceRangeMap,
+                                       Map<String, CommonCode> distanceMap) {
         return new PickerResponse(
-                dto.id(), dto.name(), dto.restaurantName(), dto.category(),
-                dto.priceRange(), dto.distance(), dto.imageUrl(),
-                dto.lastEatenAt(), dto.avgRating(), dto.reviewCount()
+                dto.id(), dto.name(), dto.restaurantName(),
+                toCodeItemResponse(dto.categoryCode(), categoryMap),
+                toCodeItemResponse(dto.priceRangeCode(), priceRangeMap),
+                toCodeItemResponse(dto.distanceCode(), distanceMap),
+                dto.imageUrl(), dto.lastEatenAt(),
+                dto.avgRating(), dto.reviewCount()
         );
     }
 
