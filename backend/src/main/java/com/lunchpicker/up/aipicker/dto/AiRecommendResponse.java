@@ -14,9 +14,9 @@ public record AiRecommendResponse(
             Long menuId,
             String menuName,
             String restaurantName,
-            String category,
-            String priceRange,
-            String distance,
+            CodeItemResponse category,
+            CodeItemResponse priceRange,
+            CodeItemResponse distance,
             Double avgRating,
             String reason
     ) {

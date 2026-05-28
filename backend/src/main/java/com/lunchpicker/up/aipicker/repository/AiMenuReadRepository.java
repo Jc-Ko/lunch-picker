@@ -20,21 +20,21 @@ public class AiMenuReadRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     private static final String ALL_MENUS_QUERY = """
-            SELECT m.id, m.name, m.restaurant_name, m.category, m.price_range, m.distance,
+            SELECT m.id, m.name, m.restaurant_name, m.category_code, m.price_range_code, m.distance_code,
                    ROUND(AVG(r.rating), 1) AS avg_rating
             FROM menus m
             LEFT JOIN reviews r ON r.menu_id = m.id
-            GROUP BY m.id, m.name, m.restaurant_name, m.category, m.price_range, m.distance
+            GROUP BY m.id, m.name, m.restaurant_name, m.category_code, m.price_range_code, m.distance_code
             ORDER BY m.id
             """;
 
     private static final String MENUS_BY_IDS_QUERY = """
-            SELECT m.id, m.name, m.restaurant_name, m.category, m.price_range, m.distance,
+            SELECT m.id, m.name, m.restaurant_name, m.category_code, m.price_range_code, m.distance_code,
                    ROUND(AVG(r.rating), 1) AS avg_rating
             FROM menus m
             LEFT JOIN reviews r ON r.menu_id = m.id
             WHERE m.id IN (:ids)
-            GROUP BY m.id, m.name, m.restaurant_name, m.category, m.price_range, m.distance
+            GROUP BY m.id, m.name, m.restaurant_name, m.category_code, m.price_range_code, m.distance_code
             """;
 
     public List<AiMenuDto> findAllWithAvgRating() {
@@ -54,9 +54,9 @@ public class AiMenuReadRepository {
                 rs.getLong("id"),
                 rs.getString("name"),
                 rs.getString("restaurant_name"),
-                rs.getString("category"),
-                rs.getString("price_range"),
-                rs.getString("distance"),
+                rs.getString("category_code"),
+                rs.getString("price_range_code"),
+                rs.getString("distance_code"),
                 rs.getObject("avg_rating", Double.class)
         );
     }
