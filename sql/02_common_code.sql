@@ -7,7 +7,7 @@
 -- 실행 시 반드시 --default-character-set=utf8mb4 옵션 필요:
 --   docker exec -i lunch-picker-mysql mysql -u lunchpicker -p1234 --default-character-set=utf8mb4 menu_db < sql/03_common_code.sql
 
-DELETE FROM common_codes;
+TRUNCATE TABLE common_codes;
 
 INSERT INTO common_codes (code_group, code, label, sort_order) VALUES
     ('category', 'KOREAN',  '한식', 1),
