@@ -54,15 +54,11 @@ public class MenuService {
         validateCode(request.priceRange(), priceRangeMap, "가격대");
         validateCode(request.distance(), distanceMap, "거리");
 
-        String categoryLabel = categoryMap.get(request.category()).getLabel();
-        String priceRangeLabel = priceRangeMap.get(request.priceRange()).getLabel();
-        String distanceLabel = distanceMap.get(request.distance()).getLabel();
-
         Menu menu = Menu.create(
                 request.name(), request.restaurantName(),
-                categoryLabel, request.category(),
-                priceRangeLabel, request.priceRange(),
-                distanceLabel, request.distance(),
+                request.category(),
+                request.priceRange(),
+                request.distance(),
                 request.imageUrl()
         );
         return toResponse(menuRepository.save(menu), categoryMap, priceRangeMap, distanceMap);
@@ -78,17 +74,13 @@ public class MenuService {
         validateCode(request.priceRange(), priceRangeMap, "가격대");
         validateCode(request.distance(), distanceMap, "거리");
 
-        String categoryLabel = categoryMap.get(request.category()).getLabel();
-        String priceRangeLabel = priceRangeMap.get(request.priceRange()).getLabel();
-        String distanceLabel = distanceMap.get(request.distance()).getLabel();
-
         Menu menu = menuRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("메뉴를 찾을 수 없습니다. id=" + id));
         menu.update(
                 request.name(), request.restaurantName(),
-                categoryLabel, request.category(),
-                priceRangeLabel, request.priceRange(),
-                distanceLabel, request.distance(),
+                request.category(),
+                request.priceRange(),
+                request.distance(),
                 request.imageUrl()
         );
         return toResponse(menu, categoryMap, priceRangeMap, distanceMap);

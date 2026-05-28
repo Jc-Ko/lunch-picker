@@ -25,15 +25,6 @@ public class Menu {
     @Column(nullable = false)
     private String restaurantName;
 
-    @Column(nullable = false)
-    private String category;
-
-    @Column(nullable = false)
-    private String priceRange;
-
-    @Column(nullable = false)
-    private String distance;
-
     @Column(name = "category_code")
     private String categoryCode;
 
@@ -52,35 +43,29 @@ public class Menu {
     private LocalDateTime createdAt;
 
     public static Menu create(String name, String restaurantName,
-                              String category, String categoryCode,
-                              String priceRange, String priceRangeCode,
-                              String distance, String distanceCode,
+                              String categoryCode,
+                              String priceRangeCode,
+                              String distanceCode,
                               String imageUrl) {
         Menu menu = new Menu();
         menu.name = name;
         menu.restaurantName = restaurantName;
-        menu.category = category;
         menu.categoryCode = categoryCode;
-        menu.priceRange = priceRange;
         menu.priceRangeCode = priceRangeCode;
-        menu.distance = distance;
         menu.distanceCode = distanceCode;
         menu.imageUrl = imageUrl;
         return menu;
     }
 
     public void update(String name, String restaurantName,
-                       String category, String categoryCode,
-                       String priceRange, String priceRangeCode,
-                       String distance, String distanceCode,
+                       String categoryCode,
+                       String priceRangeCode,
+                       String distanceCode,
                        String imageUrl) {
         this.name = name;
         this.restaurantName = restaurantName;
-        this.category = category;
         this.categoryCode = categoryCode;
-        this.priceRange = priceRange;
         this.priceRangeCode = priceRangeCode;
-        this.distance = distance;
         this.distanceCode = distanceCode;
         this.imageUrl = imageUrl;
     }

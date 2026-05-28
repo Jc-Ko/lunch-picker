@@ -11,17 +11,6 @@ import java.util.Optional;
 
 public interface MenuRepository extends JpaRepository<Menu, Long> {
 
-    @Query("SELECT m FROM Menu m WHERE " +
-           "(:category IS NULL OR m.category = :category) AND " +
-           "(:priceRange IS NULL OR m.priceRange = :priceRange) AND " +
-           "(:distance IS NULL OR m.distance = :distance) " +
-           "ORDER BY m.createdAt DESC")
-    List<Menu> findAllWithFilter(
-            @Param("category") String category,
-            @Param("priceRange") String priceRange,
-            @Param("distance") String distance
-    );
-
     @Query("SELECT new com.lunchpicker.up.menu.dto.MenuWithStatsDto(" +
            "m.id, m.name, m.restaurantName, m.categoryCode, m.priceRangeCode, m.distanceCode, " +
            "m.imageUrl, m.lastEatenAt, " +
