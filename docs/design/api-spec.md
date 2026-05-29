@@ -1,5 +1,5 @@
 # API Specification
-> 버전: v1.0
+> 버전: v1.1
 > 모든 API는 인증 없이 호출 가능합니다.
 
 ---
@@ -48,9 +48,19 @@
 - 요청: `application/json`
 - 응답: `application/json; charset=utf-8`
 
+### 공통 타입 — CodeItem
+
+카테고리·가격대·거리 필드는 응답에서 아래 객체 형식으로 반환된다.
+
+```json
+{ "id": 1, "code": "KOREAN", "label": "한식" }
+```
+
+> `id`는 common_codes 테이블의 PK, `code`는 코드값, `label`은 화면 표시용 한글 레이블이다.
+
 ---
 
-## 1. menu-service (Port 8081)
+## 1. menu 도메인
 
 ### 공통 타입 정의
 
@@ -60,9 +70,9 @@
   "id": 1,
   "name": "김치찌개",
   "restaurantName": "한솥뚝배기",
-  "category": "한식",
-  "priceRange": "1만원이하",
-  "distance": "도보5분",
+  "category": { "id": 1, "code": "KOREAN", "label": "한식" },
+  "priceRange": { "id": 4, "code": "UNDER_10000", "label": "1만원이하" },
+  "distance": { "id": 7, "code": "WALK_5MIN", "label": "도보5분" },
   "imageUrl": "https://example.com/image.jpg",
   "lastEatenAt": "2026-05-10T12:00:00",
   "avgRating": 4.4,
@@ -97,13 +107,13 @@ GET /api/menus
 
 | 파라미터 | 타입 | 필수 | 설명 |
 |----------|------|------|------|
-| `category` | String | No | `한식` \| `양식` \| `중식` |
-| `priceRange` | String | No | `1만원이하` \| `1~2만원` \| `2만원이상` |
-| `distance` | String | No | `도보5분` \| `도보10분` \| `배달가능` |
+| `category` | String | No | `KOREAN` \| `WESTERN` \| `CHINESE` |
+| `priceRange` | String | No | `UNDER_10000` \| `BETWEEN_10000_20000` \| `OVER_20000` |
+| `distance` | String | No | `WALK_5MIN` \| `WALK_10MIN` \| `DELIVERY` |
 
 **요청 예시**
 ```
-GET /api/menus?category=한식&priceRange=1만원이하
+GET /api/menus?category=KOREAN&priceRange=UNDER_10000
 ```
 
 **응답 예시**
@@ -115,9 +125,9 @@ GET /api/menus?category=한식&priceRange=1만원이하
       "id": 1,
       "name": "김치찌개",
       "restaurantName": "한솥뚝배기",
-      "category": "한식",
-      "priceRange": "1만원이하",
-      "distance": "도보5분",
+      "category": { "id": 1, "code": "KOREAN", "label": "한식" },
+      "priceRange": { "id": 4, "code": "UNDER_10000", "label": "1만원이하" },
+      "distance": { "id": 7, "code": "WALK_5MIN", "label": "도보5분" },
       "imageUrl": null,
       "lastEatenAt": "2026-05-10T12:00:00",
       "avgRating": 4.4,
@@ -151,9 +161,9 @@ GET /api/menus/{id}
     "id": 1,
     "name": "김치찌개",
     "restaurantName": "한솥뚝배기",
-    "category": "한식",
-    "priceRange": "1만원이하",
-    "distance": "도보5분",
+    "category": { "id": 1, "code": "KOREAN", "label": "한식" },
+    "priceRange": { "id": 4, "code": "UNDER_10000", "label": "1만원이하" },
+    "distance": { "id": 7, "code": "WALK_5MIN", "label": "도보5분" },
     "imageUrl": null,
     "lastEatenAt": "2026-05-10T12:00:00",
     "avgRating": 4.4,
@@ -187,9 +197,9 @@ POST /api/menus
 |------|------|------|--------|------|
 | `name` | String | Yes | 최대 100자 | 메뉴 이름 |
 | `restaurantName` | String | Yes | 최대 100자 | 가게 이름 |
-| `category` | String | Yes | `한식`\|`양식`\|`중식` | 카테고리 |
-| `priceRange` | String | Yes | `1만원이하`\|`1~2만원`\|`2만원이상` | 가격대 |
-| `distance` | String | Yes | `도보5분`\|`도보10분`\|`배달가능` | 거리 |
+| `category` | String | Yes | `KOREAN`\|`WESTERN`\|`CHINESE` | 카테고리 코드값 |
+| `priceRange` | String | Yes | `UNDER_10000`\|`BETWEEN_10000_20000`\|`OVER_20000` | 가격대 코드값 |
+| `distance` | String | Yes | `WALK_5MIN`\|`WALK_10MIN`\|`DELIVERY` | 거리 코드값 |
 | `imageUrl` | String | No | URL 형식, 최대 500자 | 사진 URL |
 
 **요청 예시**
@@ -197,9 +207,9 @@ POST /api/menus
 {
   "name": "부대찌개",
   "restaurantName": "한솥뚝배기",
-  "category": "한식",
-  "priceRange": "1만원이하",
-  "distance": "도보5분",
+  "category": "KOREAN",
+  "priceRange": "UNDER_10000",
+  "distance": "WALK_5MIN",
   "imageUrl": null
 }
 ```
@@ -212,9 +222,9 @@ POST /api/menus
     "id": 17,
     "name": "부대찌개",
     "restaurantName": "한솥뚝배기",
-    "category": "한식",
-    "priceRange": "1만원이하",
-    "distance": "도보5분",
+    "category": { "id": 1, "code": "KOREAN", "label": "한식" },
+    "priceRange": { "id": 4, "code": "UNDER_10000", "label": "1만원이하" },
+    "distance": { "id": 7, "code": "WALK_5MIN", "label": "도보5분" },
     "imageUrl": null,
     "lastEatenAt": null,
     "avgRating": null,
@@ -249,9 +259,9 @@ PUT /api/menus/{id}
     "id": 1,
     "name": "김치찌개 (매운맛)",
     "restaurantName": "한솥뚝배기",
-    "category": "한식",
-    "priceRange": "1만원이하",
-    "distance": "도보5분",
+    "category": { "id": 1, "code": "KOREAN", "label": "한식" },
+    "priceRange": { "id": 4, "code": "UNDER_10000", "label": "1만원이하" },
+    "distance": { "id": 7, "code": "WALK_5MIN", "label": "도보5분" },
     "imageUrl": null,
     "lastEatenAt": "2026-05-10T12:00:00",
     "avgRating": 4.4,
@@ -483,9 +493,9 @@ PATCH /api/menus/{id}/eat
 
 ---
 
-## 2. picker-service (Port 8082)
+## 2. picker 도메인
 
-### 2-1. 조건 기반 랜덤 메뉴 뽑기
+### 2-1. 단순 선택 — 조건 기반 랜덤 메뉴 뽑기
 
 ```
 GET /api/picker/pick
@@ -495,23 +505,14 @@ GET /api/picker/pick
 
 | 파라미터 | 타입 | 필수 | 설명 |
 |----------|------|------|------|
-| `categoryMode` | String | Yes | `simple` \| `weighted` |
-| `category` | String | No | `한식`\|`양식`\|`중식`\|`전체` — `simple` 모드일 때 |
-| `koreanWeight` | Integer | No | 한식 비중 (0 이상) — `weighted` 모드일 때 |
-| `westernWeight` | Integer | No | 양식 비중 (0 이상) — `weighted` 모드일 때 |
-| `chineseWeight` | Integer | No | 중식 비중 (0 이상) — `weighted` 모드일 때 |
-| `minRating` | Double | No | 최소 평균 별점. 미전달 또는 `null` = 상관없음 |
-| `priceRange` | String | No | `1만원이하`\|`1~2만원`\|`2만원이상`. 미전달 = 상관없음 |
-| `distance` | String | No | `도보5분`\|`도보10분`\|`배달가능`. 미전달 = 상관없음 |
+| `category` | String | No | `KOREAN` \| `WESTERN` \| `CHINESE`. 미전달 = 전체 |
+| `minRating` | Double | No | 최소 평균 별점. 미전달 = 상관없음 |
+| `priceRange` | String | No | `UNDER_10000` \| `BETWEEN_10000_20000` \| `OVER_20000`. 미전달 = 상관없음 |
+| `distance` | String | No | `WALK_5MIN` \| `WALK_10MIN` \| `DELIVERY`. 미전달 = 상관없음 |
 
-**요청 예시 — simple 모드**
+**요청 예시**
 ```
-GET /api/picker/pick?categoryMode=simple&category=한식&minRating=4.0&priceRange=1만원이하
-```
-
-**요청 예시 — weighted 모드**
-```
-GET /api/picker/pick?categoryMode=weighted&koreanWeight=70&westernWeight=20&chineseWeight=10&distance=도보5분
+GET /api/picker/pick?category=KOREAN&minRating=4.0&priceRange=UNDER_10000
 ```
 
 **응답 예시**
@@ -522,9 +523,9 @@ GET /api/picker/pick?categoryMode=weighted&koreanWeight=70&westernWeight=20&chin
     "id": 1,
     "name": "김치찌개",
     "restaurantName": "한솥뚝배기",
-    "category": "한식",
-    "priceRange": "1만원이하",
-    "distance": "도보5분",
+    "category": { "id": 1, "code": "KOREAN", "label": "한식" },
+    "priceRange": { "id": 4, "code": "UNDER_10000", "label": "1만원이하" },
+    "distance": { "id": 7, "code": "WALK_5MIN", "label": "도보5분" },
     "imageUrl": null,
     "lastEatenAt": "2026-05-10T12:00:00",
     "avgRating": 4.4,
@@ -545,7 +546,67 @@ GET /api/picker/pick?categoryMode=weighted&koreanWeight=70&westernWeight=20&chin
 
 ---
 
-## 3. ai-service (Port 8083)
+### 2-2. 비중 선택 — 카테고리 가중치 기반 랜덤 메뉴 뽑기
+
+```
+POST /api/picker/pick
+```
+
+**Request Body**
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| `weights` | Map\<String, Integer\> | Yes | 카테고리별 비중. 키는 코드값(`KOREAN`, `WESTERN`, `CHINESE`), 값은 0 이상 정수. 빈 Map 또는 합계 0이면 전 카테고리 균등 선택 |
+| `minRating` | Double | No | 최소 평균 별점. null = 상관없음 |
+| `priceRange` | String | No | `UNDER_10000` \| `BETWEEN_10000_20000` \| `OVER_20000`. null = 상관없음 |
+| `distance` | String | No | `WALK_5MIN` \| `WALK_10MIN` \| `DELIVERY`. null = 상관없음 |
+
+**요청 예시**
+```json
+{
+  "weights": {
+    "KOREAN": 70,
+    "WESTERN": 20,
+    "CHINESE": 10
+  },
+  "minRating": null,
+  "priceRange": "UNDER_10000",
+  "distance": null
+}
+```
+
+**응답 예시** — 2-1과 동일 형식
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "김치찌개",
+    "restaurantName": "한솥뚝배기",
+    "category": { "id": 1, "code": "KOREAN", "label": "한식" },
+    "priceRange": { "id": 4, "code": "UNDER_10000", "label": "1만원이하" },
+    "distance": { "id": 7, "code": "WALK_5MIN", "label": "도보5분" },
+    "imageUrl": null,
+    "lastEatenAt": "2026-05-10T12:00:00",
+    "avgRating": 4.4,
+    "reviewCount": 5
+  },
+  "message": null
+}
+```
+
+**에러 응답** (조건에 맞는 메뉴 없음)
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "조건에 맞는 메뉴가 없습니다"
+}
+```
+
+---
+
+## 3. ai 도메인
 
 ### 공통 타입 정의
 
@@ -556,9 +617,9 @@ GET /api/picker/pick?categoryMode=weighted&koreanWeight=70&westernWeight=20&chin
   "menuId": 14,
   "menuName": "마라탕",
   "restaurantName": "마라하오",
-  "category": "중식",
-  "priceRange": "1~2만원",
-  "distance": "도보5분",
+  "category": { "id": 3, "code": "CHINESE", "label": "중식" },
+  "priceRange": { "id": 5, "code": "BETWEEN_10000_20000", "label": "1~2만원" },
+  "distance": { "id": 7, "code": "WALK_5MIN", "label": "도보5분" },
   "avgRating": 4.8,
   "reason": "더운 날씨에 시원하면서 얼큰한 마라탕이 제격입니다."
 }
@@ -598,9 +659,9 @@ POST /api/ai/recommend
         "menuId": 10,
         "menuName": "샌드위치",
         "restaurantName": "써브웨이",
-        "category": "양식",
-        "priceRange": "1만원이하",
-        "distance": "도보5분",
+        "category": { "id": 2, "code": "WESTERN", "label": "양식" },
+        "priceRange": { "id": 4, "code": "UNDER_10000", "label": "1만원이하" },
+        "distance": { "id": 7, "code": "WALK_5MIN", "label": "도보5분" },
         "avgRating": 3.4,
         "reason": "가볍고 시원하게 먹기 좋은 샌드위치로 더운 날씨에 잘 어울립니다."
       },
@@ -609,9 +670,9 @@ POST /api/ai/recommend
         "menuId": 7,
         "menuName": "파스타",
         "restaurantName": "라보카",
-        "category": "양식",
-        "priceRange": "1~2만원",
-        "distance": "도보10분",
+        "category": { "id": 2, "code": "WESTERN", "label": "양식" },
+        "priceRange": { "id": 5, "code": "BETWEEN_10000_20000", "label": "1~2만원" },
+        "distance": { "id": 8, "code": "WALK_10MIN", "label": "도보10분" },
         "avgRating": 4.2,
         "reason": "한식 대신 양식으로 가볍게 즐길 수 있는 파스타를 추천합니다."
       },
@@ -620,9 +681,9 @@ POST /api/ai/recommend
         "menuId": 12,
         "menuName": "짜장면",
         "restaurantName": "홍콩반점",
-        "category": "중식",
-        "priceRange": "1만원이하",
-        "distance": "배달가능",
+        "category": { "id": 3, "code": "CHINESE", "label": "중식" },
+        "priceRange": { "id": 4, "code": "UNDER_10000", "label": "1만원이하" },
+        "distance": { "id": 9, "code": "DELIVERY", "label": "배달가능" },
         "avgRating": 3.0,
         "reason": "부담 없이 먹을 수 있는 중식으로 한식과 다른 맛을 즐길 수 있습니다."
       }
@@ -675,9 +736,9 @@ GET /api/ai/history?limit=10
           "menuId": 10,
           "menuName": "샌드위치",
           "restaurantName": "써브웨이",
-          "category": "양식",
-          "priceRange": "1만원이하",
-          "distance": "도보5분",
+          "category": { "id": 2, "code": "WESTERN", "label": "양식" },
+          "priceRange": { "id": 4, "code": "UNDER_10000", "label": "1만원이하" },
+          "distance": { "id": 7, "code": "WALK_5MIN", "label": "도보5분" },
           "avgRating": 3.4,
           "reason": "가볍고 시원하게 먹기 좋은 샌드위치입니다."
         },
@@ -686,9 +747,9 @@ GET /api/ai/history?limit=10
           "menuId": 7,
           "menuName": "파스타",
           "restaurantName": "라보카",
-          "category": "양식",
-          "priceRange": "1~2만원",
-          "distance": "도보10분",
+          "category": { "id": 2, "code": "WESTERN", "label": "양식" },
+          "priceRange": { "id": 5, "code": "BETWEEN_10000_20000", "label": "1~2만원" },
+          "distance": { "id": 8, "code": "WALK_10MIN", "label": "도보10분" },
           "avgRating": 4.2,
           "reason": "한식 대신 양식으로 즐기기 좋습니다."
         },
@@ -697,9 +758,9 @@ GET /api/ai/history?limit=10
           "menuId": 12,
           "menuName": "짜장면",
           "restaurantName": "홍콩반점",
-          "category": "중식",
-          "priceRange": "1만원이하",
-          "distance": "배달가능",
+          "category": { "id": 3, "code": "CHINESE", "label": "중식" },
+          "priceRange": { "id": 4, "code": "UNDER_10000", "label": "1만원이하" },
+          "distance": { "id": 9, "code": "DELIVERY", "label": "배달가능" },
           "avgRating": 3.0,
           "reason": "부담 없이 먹을 수 있는 선택입니다."
         }
@@ -769,7 +830,8 @@ DELETE /api/ai/history
 | menu | POST | /api/menus/{id}/reviews | 리뷰 작성 |
 | menu | PUT | /api/reviews/{id} | 리뷰 수정 (PIN 검증) |
 | menu | DELETE | /api/reviews/{id} | 리뷰 삭제 (PIN 검증) |
-| picker | GET | /api/picker/pick | 조건 기반 랜덤 뽑기 |
+| picker | GET | /api/picker/pick | 단순 선택 랜덤 뽑기 |
+| picker | POST | /api/picker/pick | 비중 선택 랜덤 뽑기 |
 | ai | POST | /api/ai/recommend | AI 자연어 추천 |
 | ai | GET | /api/ai/history | 추천 히스토리 조회 |
 | ai | DELETE | /api/ai/history | 추천 히스토리 전체 삭제 (soft delete) |
