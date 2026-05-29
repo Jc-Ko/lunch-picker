@@ -6,12 +6,11 @@ public record PickerResponse(
         Long id,
         String name,
         String restaurantName,
-        String category,
-        String priceRange,
-        String distance,
+        CodeItemResponse category,
+        CodeItemResponse priceRange,
+        CodeItemResponse distance,
         String imageUrl,
         LocalDateTime lastEatenAt,
         Double avgRating,
         Long reviewCount
-) {
-}
+) {}

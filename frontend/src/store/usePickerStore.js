@@ -2,13 +2,11 @@ import { create } from 'zustand'
 
 const defaultCondition = {
   categoryMode: 'simple',
-  category: '상관없음',
-  koreanWeight: 33,
-  westernWeight: 33,
-  chineseWeight: 33,
+  category: null,
+  weights: {},
   minRating: null,
-  priceRange: '상관없음',
-  distance: '상관없음',
+  priceRange: null,
+  distance: null,
 }
 
 const usePickerStore = create((set) => ({

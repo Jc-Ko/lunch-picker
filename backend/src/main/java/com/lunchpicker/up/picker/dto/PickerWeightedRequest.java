@@ -1,7 +1,9 @@
 package com.lunchpicker.up.picker.dto;
 
-public record PickerRequest(
-        String category,
+import java.util.Map;
+
+public record PickerWeightedRequest(
+        Map<String, Integer> weights,
         Double minRating,
         String priceRange,
         String distance

@@ -1,7 +1,11 @@
 package com.lunchpicker.up.menu.service;
 
+import com.lunchpicker.up.commoncode.CommonCode;
+import com.lunchpicker.up.commoncode.CommonCodeRepository;
+import com.lunchpicker.up.menu.dto.CodeItemResponse;
 import com.lunchpicker.up.menu.dto.MenuRequest;
 import com.lunchpicker.up.menu.dto.MenuResponse;
+import com.lunchpicker.up.menu.dto.MenuWithStatsDto;
 import com.lunchpicker.up.menu.entity.Menu;
 import com.lunchpicker.up.menu.repository.MenuRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,47 +13,77 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MenuService {
 
-    private static final Set<String> VALID_CATEGORIES = Set.of("한식", "양식", "중식");
-    private static final Set<String> VALID_PRICE_RANGES = Set.of("1만원이하", "1~2만원", "2만원이상");
-    private static final Set<String> VALID_DISTANCES = Set.of("도보5분", "도보10분", "배달가능");
-
     private final MenuRepository menuRepository;
+    private final CommonCodeRepository commonCodeRepository;
 
-    public List<MenuResponse> getMenus(String category, String priceRange, String distance) {
-        return menuRepository.findAllWithStatsAndFilter(category, priceRange, distance);
+    public List<MenuResponse> getMenus(String categoryCode, String priceRangeCode, String distanceCode) {
+        List<MenuWithStatsDto> dtos = menuRepository.findAllWithStatsAndFilter(categoryCode, priceRangeCode, distanceCode);
+        Map<String, CommonCode> categoryMap = loadCodeMap("category");
+        Map<String, CommonCode> priceRangeMap = loadCodeMap("price_range");
+        Map<String, CommonCode> distanceMap = loadCodeMap("distance");
+        return dtos.stream()
+                .map(dto -> toResponse(dto, categoryMap, priceRangeMap, distanceMap))
+                .toList();
     }
 
     public MenuResponse getMenu(Long id) {
-        return menuRepository.findByIdWithStats(id)
+        MenuWithStatsDto dto = menuRepository.findByIdWithStats(id)
                 .orElseThrow(() -> new NoSuchElementException("메뉴를 찾을 수 없습니다. id=" + id));
+        Map<String, CommonCode> categoryMap = loadCodeMap("category");
+        Map<String, CommonCode> priceRangeMap = loadCodeMap("price_range");
+        Map<String, CommonCode> distanceMap = loadCodeMap("distance");
+        return toResponse(dto, categoryMap, priceRangeMap, distanceMap);
     }
 
     @Transactional
     public MenuResponse createMenu(MenuRequest request) {
-        validateMenuFields(request);
+        Map<String, CommonCode> categoryMap = loadCodeMap("category");
+        Map<String, CommonCode> priceRangeMap = loadCodeMap("price_range");
+        Map<String, CommonCode> distanceMap = loadCodeMap("distance");
+
+        validateCode(request.category(), categoryMap, "카테고리");
+        validateCode(request.priceRange(), priceRangeMap, "가격대");
+        validateCode(request.distance(), distanceMap, "거리");
+
         Menu menu = Menu.create(
-                request.name(), request.restaurantName(), request.category(),
-                request.priceRange(), request.distance(), request.imageUrl()
+                request.name(), request.restaurantName(),
+                request.category(),
+                request.priceRange(),
+                request.distance(),
+                request.imageUrl()
         );
-        return toResponse(menuRepository.save(menu));
+        return toResponse(menuRepository.save(menu), categoryMap, priceRangeMap, distanceMap);
     }
 
     @Transactional
     public MenuResponse updateMenu(Long id, MenuRequest request) {
-        validateMenuFields(request);
+        Map<String, CommonCode> categoryMap = loadCodeMap("category");
+        Map<String, CommonCode> priceRangeMap = loadCodeMap("price_range");
+        Map<String, CommonCode> distanceMap = loadCodeMap("distance");
+
+        validateCode(request.category(), categoryMap, "카테고리");
+        validateCode(request.priceRange(), priceRangeMap, "가격대");
+        validateCode(request.distance(), distanceMap, "거리");
+
         Menu menu = menuRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("메뉴를 찾을 수 없습니다. id=" + id));
-        menu.update(request.name(), request.restaurantName(), request.category(),
-                request.priceRange(), request.distance(), request.imageUrl());
-        return toResponse(menu);
+        menu.update(
+                request.name(), request.restaurantName(),
+                request.category(),
+                request.priceRange(),
+                request.distance(),
+                request.imageUrl()
+        );
+        return toResponse(menu, categoryMap, priceRangeMap, distanceMap);
     }
 
     @Transactional
@@ -64,34 +98,61 @@ public class MenuService {
         Menu menu = menuRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("메뉴를 찾을 수 없습니다. id=" + id));
         menu.updateLastEatenAt();
-        return toResponse(menu);
+        Map<String, CommonCode> categoryMap = loadCodeMap("category");
+        Map<String, CommonCode> priceRangeMap = loadCodeMap("price_range");
+        Map<String, CommonCode> distanceMap = loadCodeMap("distance");
+        return toResponse(menu, categoryMap, priceRangeMap, distanceMap);
     }
 
-    private void validateMenuFields(MenuRequest request) {
-        if (!VALID_CATEGORIES.contains(request.category())) {
-            throw new IllegalArgumentException("유효하지 않은 카테고리입니다: " + request.category());
-        }
-        if (!VALID_PRICE_RANGES.contains(request.priceRange())) {
-            throw new IllegalArgumentException("유효하지 않은 가격대입니다: " + request.priceRange());
-        }
-        if (!VALID_DISTANCES.contains(request.distance())) {
-            throw new IllegalArgumentException("유효하지 않은 거리입니다: " + request.distance());
+    private Map<String, CommonCode> loadCodeMap(String codeGroup) {
+        return commonCodeRepository.findByCodeGroupOrderBySortOrderAsc(codeGroup)
+                .stream().collect(Collectors.toMap(CommonCode::getCode, c -> c));
+    }
+
+    private void validateCode(String code, Map<String, CommonCode> codeMap, String fieldName) {
+        if (!codeMap.containsKey(code)) {
+            throw new IllegalArgumentException("유효하지 않은 " + fieldName + " 코드입니다: " + code);
         }
     }
 
-    private MenuResponse toResponse(Menu menu) {
+    private CodeItemResponse toCodeItemResponse(String code, Map<String, CommonCode> codeMap) {
+        CommonCode cc = codeMap.get(code);
+        return new CodeItemResponse(cc.getId(), cc.getCode(), cc.getLabel());
+    }
+
+    private MenuResponse toResponse(Menu menu, Map<String, CommonCode> categoryMap,
+                                     Map<String, CommonCode> priceRangeMap,
+                                     Map<String, CommonCode> distanceMap) {
         return new MenuResponse(
                 menu.getId(),
                 menu.getName(),
                 menu.getRestaurantName(),
-                menu.getCategory(),
-                menu.getPriceRange(),
-                menu.getDistance(),
+                toCodeItemResponse(menu.getCategoryCode(), categoryMap),
+                toCodeItemResponse(menu.getPriceRangeCode(), priceRangeMap),
+                toCodeItemResponse(menu.getDistanceCode(), distanceMap),
                 menu.getImageUrl(),
                 menu.getLastEatenAt(),
                 null,
                 0L,
                 menu.getCreatedAt()
+        );
+    }
+
+    private MenuResponse toResponse(MenuWithStatsDto dto, Map<String, CommonCode> categoryMap,
+                                     Map<String, CommonCode> priceRangeMap,
+                                     Map<String, CommonCode> distanceMap) {
+        return new MenuResponse(
+                dto.id(),
+                dto.name(),
+                dto.restaurantName(),
+                toCodeItemResponse(dto.categoryCode(), categoryMap),
+                toCodeItemResponse(dto.priceRangeCode(), priceRangeMap),
+                toCodeItemResponse(dto.distanceCode(), distanceMap),
+                dto.imageUrl(),
+                dto.lastEatenAt(),
+                dto.avgRating(),
+                dto.reviewCount(),
+                dto.createdAt()
         );
     }
 }

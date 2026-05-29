@@ -25,14 +25,14 @@ public class Menu {
     @Column(nullable = false)
     private String restaurantName;
 
-    @Column(nullable = false)
-    private String category;
+    @Column(name = "category_code")
+    private String categoryCode;
 
-    @Column(nullable = false)
-    private String priceRange;
+    @Column(name = "price_range_code")
+    private String priceRangeCode;
 
-    @Column(nullable = false)
-    private String distance;
+    @Column(name = "distance_code")
+    private String distanceCode;
 
     private String imageUrl;
 
@@ -42,25 +42,31 @@ public class Menu {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    public static Menu create(String name, String restaurantName, String category,
-                              String priceRange, String distance, String imageUrl) {
+    public static Menu create(String name, String restaurantName,
+                              String categoryCode,
+                              String priceRangeCode,
+                              String distanceCode,
+                              String imageUrl) {
         Menu menu = new Menu();
         menu.name = name;
         menu.restaurantName = restaurantName;
-        menu.category = category;
-        menu.priceRange = priceRange;
-        menu.distance = distance;
+        menu.categoryCode = categoryCode;
+        menu.priceRangeCode = priceRangeCode;
+        menu.distanceCode = distanceCode;
         menu.imageUrl = imageUrl;
         return menu;
     }
 
-    public void update(String name, String restaurantName, String category,
-                       String priceRange, String distance, String imageUrl) {
+    public void update(String name, String restaurantName,
+                       String categoryCode,
+                       String priceRangeCode,
+                       String distanceCode,
+                       String imageUrl) {
         this.name = name;
         this.restaurantName = restaurantName;
-        this.category = category;
-        this.priceRange = priceRange;
-        this.distance = distance;
+        this.categoryCode = categoryCode;
+        this.priceRangeCode = priceRangeCode;
+        this.distanceCode = distanceCode;
         this.imageUrl = imageUrl;
     }
 

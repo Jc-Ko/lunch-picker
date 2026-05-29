@@ -1,5 +1,5 @@
 -- ============================================================
--- 02_sample_data.sql
+-- 03_sample_data.sql
 -- 오늘 뭐 먹지? 샘플 데이터
 -- 메뉴 16개 (한식 6 / 양식 5 / 중식 5)
 -- 리뷰 있는 메뉴: 카테고리별 4개 × 5개 리뷰 = 총 60개 리뷰
@@ -11,39 +11,40 @@
 -- ============================================================
 
 USE menu_db;
+SET NAMES utf8mb4;
 
 -- ------------------------------------------------------------
--- menus (id, name, restaurant_name, category, price_range, distance, image_url, last_eaten_at)
+-- menus (id, name, restaurant_name, category_code, price_range_code, distance_code, image_url, last_eaten_at)
 -- ------------------------------------------------------------
-INSERT INTO menus (id, name, restaurant_name, category, price_range, distance, image_url, last_eaten_at) VALUES
+INSERT INTO menus (id, name, restaurant_name, category_code, price_range_code, distance_code, image_url, last_eaten_at) VALUES
 
 -- ── 한식 (id 1~6) ──────────────────────────────────────────
 -- 리뷰 있음 (4개)
-(1,  '김치찌개',  '한솥뚝배기',    '한식', '1만원이하', '도보5분',  'https://upload.wikimedia.org/wikipedia/commons/8/8a/Kimchi_soup.jpg', '2026-05-10 12:00:00'),
-(2,  '된장찌개',  '한솥뚝배기',    '한식', '1만원이하', '도보5분',  'https://upload.wikimedia.org/wikipedia/commons/9/9a/Doenjang-jjigae.jpg', '2026-05-08 12:00:00'),
-(3,  '삼겹살',    '연기나는집',    '한식', '1~2만원',  '도보10분', 'https://upload.wikimedia.org/wikipedia/commons/7/77/Samgyeopsal-gui.jpg', '2026-05-15 12:00:00'),
-(4,  '비빔밥',    '전주비빔하우스','한식', '1만원이하', '배달가능', 'https://upload.wikimedia.org/wikipedia/commons/4/44/Dolsot-bibimbap.jpg', '2026-05-12 12:00:00'),
+(1,  '김치찌개',  '한솥뚝배기',    'KOREAN', 'UNDER_10000',         'WALK_5MIN',  'https://upload.wikimedia.org/wikipedia/commons/8/8a/Kimchi_soup.jpg', '2026-05-10 12:00:00'),
+(2,  '된장찌개',  '한솥뚝배기',    'KOREAN', 'UNDER_10000',         'WALK_5MIN',  'https://upload.wikimedia.org/wikipedia/commons/9/9a/Doenjang-jjigae.jpg', '2026-05-08 12:00:00'),
+(3,  '삼겹살',    '연기나는집',    'KOREAN', 'BETWEEN_10000_20000', 'WALK_10MIN', 'https://upload.wikimedia.org/wikipedia/commons/7/77/Samgyeopsal-gui.jpg', '2026-05-15 12:00:00'),
+(4,  '비빔밥',    '전주비빔하우스','KOREAN', 'UNDER_10000',         'DELIVERY',   'https://upload.wikimedia.org/wikipedia/commons/4/44/Dolsot-bibimbap.jpg', '2026-05-12 12:00:00'),
 -- 리뷰 없음 (2개)
-(5,  '순대국밥',  '원조순대국',    '한식', '1만원이하', '도보10분', 'https://upload.wikimedia.org/wikipedia/commons/2/2d/Sundae-guk.jpg', NULL),
-(6,  '제육볶음',  '매콤한식당',    '한식', '1만원이하', '배달가능', 'https://upload.wikimedia.org/wikipedia/commons/8/8b/Jeyuk-bokkeum.jpg', '2026-05-01 12:00:00'),
+(5,  '순대국밥',  '원조순대국',    'KOREAN', 'UNDER_10000',         'WALK_10MIN', 'https://upload.wikimedia.org/wikipedia/commons/2/2d/Sundae-guk.jpg', NULL),
+(6,  '제육볶음',  '매콤한식당',    'KOREAN', 'UNDER_10000',         'DELIVERY',   'https://upload.wikimedia.org/wikipedia/commons/8/8b/Jeyuk-bokkeum.jpg', '2026-05-01 12:00:00'),
 
 -- ── 양식 (id 7~11) ─────────────────────────────────────────
 -- 리뷰 있음 (4개)
-(7,  '파스타',    '라보카',        '양식', '1~2만원',  '도보10분', 'https://upload.wikimedia.org/wikipedia/commons/c/c4/Spaghetti_bolognese_%28hozinja%29.jpg', '2026-05-14 12:00:00'),
-(8,  '피자',      '피자알볼로',    '양식', '1~2만원',  '배달가능', 'https://upload.wikimedia.org/wikipedia/commons/c/c8/Pizza_Margherita_stu_spivack.jpg', '2026-05-11 12:00:00'),
-(9,  '스테이크',  '빌라드샬롯',   '양식', '2만원이상', '도보10분', 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Beef_steak.jpg', '2026-05-07 12:00:00'),
-(10, '샌드위치',  '써브웨이',      '양식', '1만원이하', '도보5분',  'https://upload.wikimedia.org/wikipedia/commons/c/c6/Subway_sandwich.jpg', '2026-05-13 12:00:00'),
+(7,  '파스타',    '라보카',        'WESTERN', 'BETWEEN_10000_20000', 'WALK_10MIN', 'https://upload.wikimedia.org/wikipedia/commons/c/c4/Spaghetti_bolognese_%28hozinja%29.jpg', '2026-05-14 12:00:00'),
+(8,  '피자',      '피자알볼로',    'WESTERN', 'BETWEEN_10000_20000', 'DELIVERY',   'https://upload.wikimedia.org/wikipedia/commons/c/c8/Pizza_Margherita_stu_spivack.jpg', '2026-05-11 12:00:00'),
+(9,  '스테이크',  '빌라드샬롯',   'WESTERN', 'OVER_20000',          'WALK_10MIN', 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Beef_steak.jpg', '2026-05-07 12:00:00'),
+(10, '샌드위치',  '써브웨이',      'WESTERN', 'UNDER_10000',         'WALK_5MIN',  'https://upload.wikimedia.org/wikipedia/commons/c/c6/Subway_sandwich.jpg', '2026-05-13 12:00:00'),
 -- 리뷰 없음 (1개)
-(11, '리조또',    '라보카',        '양식', '1~2만원',  '도보10분', 'https://upload.wikimedia.org/wikipedia/commons/5/53/Risotto.jpg', NULL),
+(11, '리조또',    '라보카',        'WESTERN', 'BETWEEN_10000_20000', 'WALK_10MIN', 'https://upload.wikimedia.org/wikipedia/commons/5/53/Risotto.jpg', NULL),
 
 -- ── 중식 (id 12~16) ────────────────────────────────────────
 -- 리뷰 있음 (4개)
-(12, '짜장면',    '홍콩반점',      '중식', '1만원이하', '배달가능', 'https://upload.wikimedia.org/wikipedia/commons/7/78/Jajangmyeon.jpg', '2026-05-09 12:00:00'),
-(13, '짬뽕',      '홍콩반점',      '중식', '1만원이하', '배달가능', 'https://upload.wikimedia.org/wikipedia/commons/4/44/Jjampong.JPG', '2026-05-16 12:00:00'),
-(14, '마라탕',    '마라하오',      '중식', '1~2만원',  '도보5분',  'https://upload.wikimedia.org/wikipedia/commons/e/e3/Malatang.jpg', '2026-05-06 12:00:00'),
-(15, '탕수육',    '중화루',        '중식', '1~2만원',  '배달가능', 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Tangsuyuk.jpg', '2026-05-03 12:00:00'),
+(12, '짜장면',    '홍콩반점',      'CHINESE', 'UNDER_10000',         'DELIVERY',   'https://upload.wikimedia.org/wikipedia/commons/7/78/Jajangmyeon.jpg', '2026-05-09 12:00:00'),
+(13, '짬뽕',      '홍콩반점',      'CHINESE', 'UNDER_10000',         'DELIVERY',   'https://upload.wikimedia.org/wikipedia/commons/4/44/Jjampong.JPG', '2026-05-16 12:00:00'),
+(14, '마라탕',    '마라하오',      'CHINESE', 'BETWEEN_10000_20000', 'WALK_5MIN',  'https://upload.wikimedia.org/wikipedia/commons/e/e3/Malatang.jpg', '2026-05-06 12:00:00'),
+(15, '탕수육',    '중화루',        'CHINESE', 'BETWEEN_10000_20000', 'DELIVERY',   'https://upload.wikimedia.org/wikipedia/commons/b/b1/Tangsuyuk.jpg', '2026-05-03 12:00:00'),
 -- 리뷰 없음 (1개)
-(16, '깐풍기',    '중화루',        '중식', '1~2만원',  '도보10분', 'https://upload.wikimedia.org/wikipedia/commons/c/c5/Kkanpunggi.jpg', NULL);
+(16, '깐풍기',    '중화루',        'CHINESE', 'BETWEEN_10000_20000', 'WALK_10MIN', 'https://upload.wikimedia.org/wikipedia/commons/c/c5/Kkanpunggi.jpg', NULL);
 
 
 -- ------------------------------------------------------------

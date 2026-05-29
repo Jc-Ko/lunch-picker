@@ -6,11 +6,14 @@ import com.lunchpicker.up.aipicker.AiRecommendationException;
 import com.lunchpicker.up.aipicker.dto.AiMenuDto;
 import com.lunchpicker.up.aipicker.dto.AiRecommendRequest;
 import com.lunchpicker.up.aipicker.dto.AiRecommendResponse;
+import com.lunchpicker.up.aipicker.dto.CodeItemResponse;
 import com.lunchpicker.up.aipicker.entity.AiRecommendation;
 import com.lunchpicker.up.aipicker.entity.AiRecommendationResult;
 import com.lunchpicker.up.aipicker.repository.AiMenuReadRepository;
 import com.lunchpicker.up.aipicker.repository.AiRecommendationRepository;
 import com.lunchpicker.up.aipicker.repository.AiRecommendationResultRepository;
+import com.lunchpicker.up.commoncode.CommonCode;
+import com.lunchpicker.up.commoncode.CommonCodeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -31,6 +34,7 @@ public class AiPickerService {
     private final AiRecommendationRepository aiRecommendationRepository;
     private final AiRecommendationResultRepository aiRecommendationResultRepository;
     private final AiMenuReadRepository aiMenuReadRepository;
+    private final CommonCodeRepository commonCodeRepository;
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
 
@@ -46,7 +50,11 @@ public class AiPickerService {
         Map<Long, AiMenuDto> menuMap = menus.stream()
                 .collect(Collectors.toMap(AiMenuDto::id, m -> m));
 
-        String prompt = buildPrompt(menus, request.userInput());
+        Map<String, CodeItemResponse> categoryMap = loadCodeItemMap("category");
+        Map<String, CodeItemResponse> priceRangeMap = loadCodeItemMap("price_range");
+        Map<String, CodeItemResponse> distanceMap = loadCodeItemMap("distance");
+
+        String prompt = buildPrompt(menus, request.userInput(), categoryMap, priceRangeMap, distanceMap);
         String geminiText = callGemini(prompt);
         List<GeminiItem> items = parseGeminiResponse(geminiText);
 
@@ -64,7 +72,7 @@ public class AiPickerService {
         }
         aiRecommendationRepository.save(recommendation);
 
-        return toResponse(recommendation, menuMap);
+        return toResponse(recommendation, menuMap, categoryMap, priceRangeMap, distanceMap);
     }
 
     public List<AiRecommendResponse> getHistory(int limit) {
@@ -78,8 +86,12 @@ public class AiPickerService {
                 .toList();
         Map<Long, AiMenuDto> menuMap = aiMenuReadRepository.findByIds(allMenuIds);
 
+        Map<String, CodeItemResponse> categoryMap = loadCodeItemMap("category");
+        Map<String, CodeItemResponse> priceRangeMap = loadCodeItemMap("price_range");
+        Map<String, CodeItemResponse> distanceMap = loadCodeItemMap("distance");
+
         return recommendations.stream()
-                .map(r -> toResponse(r, menuMap))
+                .map(r -> toResponse(r, menuMap, categoryMap, priceRangeMap, distanceMap))
                 .toList();
     }
 
@@ -88,15 +100,30 @@ public class AiPickerService {
         aiRecommendationRepository.softDeleteAll(LocalDateTime.now());
     }
 
-    private String buildPrompt(List<AiMenuDto> menus, String userInput) {
+    private Map<String, CodeItemResponse> loadCodeItemMap(String codeGroup) {
+        return commonCodeRepository.findByCodeGroupOrderBySortOrderAsc(codeGroup)
+                .stream()
+                .collect(Collectors.toMap(
+                        CommonCode::getCode,
+                        cc -> new CodeItemResponse(cc.getId(), cc.getCode(), cc.getLabel())
+                ));
+    }
+
+    private String buildPrompt(List<AiMenuDto> menus, String userInput,
+                                Map<String, CodeItemResponse> categoryMap,
+                                Map<String, CodeItemResponse> priceRangeMap,
+                                Map<String, CodeItemResponse> distanceMap) {
         try {
             List<Map<String, Object>> menuList = menus.stream().map(m -> {
                 Map<String, Object> map = new LinkedHashMap<>();
                 map.put("id", m.id());
                 map.put("name", m.name());
-                map.put("category", m.category());
-                map.put("price_range", m.priceRange());
-                map.put("distance", m.distance());
+                map.put("category", categoryMap.getOrDefault(m.categoryCode(),
+                        new CodeItemResponse(null, m.categoryCode(), m.categoryCode())).label());
+                map.put("price_range", priceRangeMap.getOrDefault(m.priceRangeCode(),
+                        new CodeItemResponse(null, m.priceRangeCode(), m.priceRangeCode())).label());
+                map.put("distance", distanceMap.getOrDefault(m.distanceCode(),
+                        new CodeItemResponse(null, m.distanceCode(), m.distanceCode())).label());
                 map.put("avg_rating", m.avgRating());
                 return map;
             }).toList();
@@ -174,7 +201,10 @@ public class AiPickerService {
         }
     }
 
-    private AiRecommendResponse toResponse(AiRecommendation recommendation, Map<Long, AiMenuDto> menuMap) {
+    private AiRecommendResponse toResponse(AiRecommendation recommendation, Map<Long, AiMenuDto> menuMap,
+                                            Map<String, CodeItemResponse> categoryMap,
+                                            Map<String, CodeItemResponse> priceRangeMap,
+                                            Map<String, CodeItemResponse> distanceMap) {
         List<AiRecommendResponse.ResultItem> resultItems = recommendation.getResults().stream()
                 .sorted(Comparator.comparingInt(AiRecommendationResult::getRank))
                 .map(result -> {
@@ -184,9 +214,9 @@ public class AiPickerService {
                             result.getMenuId(),
                             result.getMenuName(),
                             menu != null ? menu.restaurantName() : null,
-                            menu != null ? menu.category() : null,
-                            menu != null ? menu.priceRange() : null,
-                            menu != null ? menu.distance() : null,
+                            menu != null ? categoryMap.get(menu.categoryCode()) : null,
+                            menu != null ? priceRangeMap.get(menu.priceRangeCode()) : null,
+                            menu != null ? distanceMap.get(menu.distanceCode()) : null,
                             menu != null ? menu.avgRating() : null,
                             result.getReason()
                     );

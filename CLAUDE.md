@@ -31,6 +31,7 @@ Do not guess past these. Stop, name the specific blocker, and ask.
 - Don't refactor things that aren't broken.
 - Match existing style, even if you'd do it differently.
 - Every changed line should trace directly to the user's request.
+- A question about existing code ("why is this here?", "what does this do?", "is this needed?") is a request for explanation, not a request to change it. Do not modify code in response to such a question unless explicitly told to change it.
 
 ## 4. Goal-Driven Execution
 Transform tasks into verifiable goals:

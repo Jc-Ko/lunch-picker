@@ -4,8 +4,8 @@ public record AiMenuDto(
         Long id,
         String name,
         String restaurantName,
-        String category,
-        String priceRange,
-        String distance,
+        String categoryCode,
+        String priceRangeCode,
+        String distanceCode,
         Double avgRating
 ) {}

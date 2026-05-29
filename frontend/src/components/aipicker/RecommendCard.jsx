@@ -18,9 +18,9 @@ export default function RecommendCard({ result }) {
         </div>
       </div>
       <div className="flex flex-wrap gap-1 mb-2">
-        <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">{result.category}</span>
-        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{result.priceRange}</span>
-        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">{result.distance}</span>
+        <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">{result.category.label}</span>
+        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{result.priceRange.label}</span>
+        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">{result.distance.label}</span>
         {result.avgRating != null && (
           <span className="text-xs bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded-full">⭐ {result.avgRating}</span>
         )}

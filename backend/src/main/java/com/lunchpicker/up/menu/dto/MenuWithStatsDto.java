@@ -2,17 +2,16 @@ package com.lunchpicker.up.menu.dto;
 
 import java.time.LocalDateTime;
 
-public record MenuResponse(
+public record MenuWithStatsDto(
         Long id,
         String name,
         String restaurantName,
-        CodeItemResponse category,
-        CodeItemResponse priceRange,
-        CodeItemResponse distance,
+        String categoryCode,
+        String priceRangeCode,
+        String distanceCode,
         String imageUrl,
         LocalDateTime lastEatenAt,
         Double avgRating,
         Long reviewCount,
         LocalDateTime createdAt
-) {
-}
+) {}

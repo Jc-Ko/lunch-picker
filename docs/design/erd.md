@@ -1,7 +1,7 @@
 # ERD.md — 데이터베이스 설계
 
-> 최종 수정: v1.2
-> 상세 DDL → `sql/01_schema.sql` | 샘플 데이터 → `sql/02_sample_data.sql`
+> 최종 수정: v1.3
+> 상세 DDL → `sql/01_schema.sql` | 샘플 데이터 → `sql/03_sample_data.sql`
 
 ---
 
@@ -9,42 +9,93 @@
 
 | DB | 설명 |
 |----|------|
-| `menu_db` | 전체 서비스 단일 DB (menus, reviews, ai_recommendations, ai_recommendation_results) |
+| `menu_db` | 전체 서비스 단일 DB (common_codes, menus, reviews, ai_recommendations, ai_recommendation_results) |
 
 ---
 
-## 1. menu_db
+## 1. common_codes
 
 ### 다이어그램
 
 ```
-┌──────────────────────────────────┐
-│              menus               │
-├──────────────────────────────────┤
-│ PK  id              BIGINT       │
-│     name            VARCHAR(100) │
-│     restaurant_name VARCHAR(100) │
-│     category        VARCHAR(20)  │
-│     price_range     VARCHAR(20)  │
-│     distance        VARCHAR(20)  │
-│     image_url       VARCHAR(500) │
-│     last_eaten_at   DATETIME     │
-│     created_at      DATETIME     │
-└──────────────────┬───────────────┘
-                   │ 1
-                   │
-                   │ N
-┌──────────────────┴───────────────┐
-│             reviews              │
-├──────────────────────────────────┤
-│ PK  id            BIGINT         │
-│ FK  menu_id       BIGINT         │
-│     nickname      VARCHAR(50)    │
-│     pin           CHAR(4)        │
-│     rating        TINYINT        │
-│     comment       TEXT           │
-│     created_at    DATETIME       │
-└──────────────────────────────────┘
+┌──────────────────────────────────────┐
+│           common_codes               │
+├──────────────────────────────────────┤
+│ PK  id          BIGINT               │
+│     code_group  VARCHAR(30)          │
+│     code        VARCHAR(40)          │
+│     label       VARCHAR(50)          │
+│     sort_order  INT                  │
+│     created_at  DATETIME             │
+└──────────────────────────────────────┘
+```
+
+### common_codes 테이블
+
+| 컬럼 | 타입 | NULL | 기본값 | 설명 |
+|------|------|------|--------|------|
+| `id` | BIGINT | NO | AUTO_INCREMENT | PK |
+| `code_group` | VARCHAR(30) | NO | — | 코드 그룹 (예: `category`, `price_range`, `distance`) |
+| `code` | VARCHAR(40) | NO | — | 코드값 |
+| `label` | VARCHAR(50) | NO | — | 화면 표시용 한글 레이블 |
+| `sort_order` | INT | NO | — | 정렬 순서 |
+| `created_at` | DATETIME | NO | CURRENT_TIMESTAMP | 등록일시 |
+
+**제약조건**
+- UNIQUE KEY: `(code_group, code)`
+
+**운영 중인 코드값**
+
+| code_group | code | label |
+|------------|------|-------|
+| `category` | `KOREAN` | 한식 |
+| `category` | `WESTERN` | 양식 |
+| `category` | `CHINESE` | 중식 |
+| `price_range` | `UNDER_10000` | 1만원이하 |
+| `price_range` | `BETWEEN_10000_20000` | 1~2만원 |
+| `price_range` | `OVER_20000` | 2만원이상 |
+| `distance` | `WALK_5MIN` | 도보5분 |
+| `distance` | `WALK_10MIN` | 도보10분 |
+| `distance` | `DELIVERY` | 배달가능 |
+
+**menus 테이블과의 참조 관계**
+- `menus.category_code`, `menus.price_range_code`, `menus.distance_code`는 `common_codes.code`를 **문자열로 참조**한다.
+- 물리적 FK는 없다. 유효성 검증은 애플리케이션 레벨에서 common_codes 조회로 수행한다.
+
+---
+
+## 2. menu_db
+
+### 다이어그램
+
+```
+┌──────────────────────────────────────────┐
+│               menus                      │
+├──────────────────────────────────────────┤
+│ PK  id               BIGINT             │
+│     name             VARCHAR(100)       │
+│     restaurant_name  VARCHAR(100)       │
+│     category_code    VARCHAR(40)        │
+│     price_range_code VARCHAR(40)        │
+│     distance_code    VARCHAR(40)        │
+│     image_url        VARCHAR(500)       │
+│     last_eaten_at    DATETIME           │
+│     created_at       DATETIME           │
+└──────────────────────┬───────────────────┘
+                       │ 1
+                       │
+                       │ N
+┌──────────────────────┴───────────────────┐
+│              reviews                     │
+├──────────────────────────────────────────┤
+│ PK  id            BIGINT                 │
+│ FK  menu_id       BIGINT                 │
+│     nickname      VARCHAR(50)            │
+│     pin           CHAR(4)               │
+│     rating        TINYINT               │
+│     comment       TEXT                  │
+│     created_at    DATETIME              │
+└──────────────────────────────────────────┘
 ```
 
 ### menus 테이블
@@ -54,22 +105,20 @@
 | `id` | BIGINT | NO | AUTO_INCREMENT | PK |
 | `name` | VARCHAR(100) | NO | — | 메뉴 이름 (예: 김치찌개) |
 | `restaurant_name` | VARCHAR(100) | NO | — | 가게 이름 (예: 한솥뚝배기) |
-| `category` | VARCHAR(20) | NO | — | `한식` \| `양식` \| `중식` |
-| `price_range` | VARCHAR(20) | NO | — | `1만원이하` \| `1~2만원` \| `2만원이상` |
-| `distance` | VARCHAR(20) | NO | — | `도보5분` \| `도보10분` \| `배달가능` |
+| `category_code` | VARCHAR(40) | NO | — | `KOREAN` \| `WESTERN` \| `CHINESE` |
+| `price_range_code` | VARCHAR(40) | NO | — | `UNDER_10000` \| `BETWEEN_10000_20000` \| `OVER_20000` |
+| `distance_code` | VARCHAR(40) | NO | — | `WALK_5MIN` \| `WALK_10MIN` \| `DELIVERY` |
 | `image_url` | VARCHAR(500) | YES | NULL | 메뉴 사진 URL |
 | `last_eaten_at` | DATETIME | YES | NULL | 마지막으로 먹은 날짜 |
 | `created_at` | DATETIME | NO | CURRENT_TIMESTAMP | 등록일시 |
 
 **제약조건**
-- `category` CHECK: `한식`, `양식`, `중식`
-- `price_range` CHECK: `1만원이하`, `1~2만원`, `2만원이상`
-- `distance` CHECK: `도보5분`, `도보10분`, `배달가능`
+- CHECK 제약 없음 — 유효성은 애플리케이션 레벨에서 common_codes 조회로 검증한다.
 
 **인덱스**
-- `idx_menus_category` ON `category`
-- `idx_menus_price_range` ON `price_range`
-- `idx_menus_distance` ON `distance`
+- `idx_menus_category_code` ON `category_code`
+- `idx_menus_price_range_code` ON `price_range_code`
+- `idx_menus_distance_code` ON `distance_code`
 - `idx_menus_restaurant_name` ON `restaurant_name`
 
 ---
@@ -116,7 +165,7 @@ GROUP BY m.id;
 
 ---
 
-## 2. ai_recommendations / ai_recommendation_results
+## 3. ai_recommendations / ai_recommendation_results
 
 ### 다이어그램
 
@@ -183,7 +232,7 @@ GROUP BY m.id;
 
 ---
 
-## 3. 공통 설계 원칙
+## 4. 공통 설계 원칙
 
 - **AUTO_INCREMENT**: 모든 PK는 BIGINT AUTO_INCREMENT 사용
 - **DATETIME**: 타임존 없이 서버 로컬 시간 저장 (학습용 프로젝트)

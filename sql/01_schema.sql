@@ -8,40 +8,52 @@ CREATE DATABASE IF NOT EXISTS menu_db
     DEFAULT COLLATE utf8mb4_unicode_ci;
 
 USE menu_db;
+SET NAMES utf8mb4;
 
--- ------------------------------------------------------------
--- menus
--- ------------------------------------------------------------
 DROP TABLE IF EXISTS ai_recommendation_results;
 DROP TABLE IF EXISTS ai_recommendations;
 DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS menus;
+DROP TABLE IF EXISTS common_codes;
 
-CREATE TABLE menus (
-    id              BIGINT          NOT NULL AUTO_INCREMENT,
-    name            VARCHAR(100)    NOT NULL                COMMENT '메뉴 이름',
-    restaurant_name VARCHAR(100)    NOT NULL                COMMENT '가게 이름',
-    category        VARCHAR(20)     NOT NULL                COMMENT '한식 | 양식 | 중식',
-    price_range     VARCHAR(20)     NOT NULL                COMMENT '1만원이하 | 1~2만원 | 2만원이상',
-    distance        VARCHAR(20)     NOT NULL                COMMENT '도보5분 | 도보10분 | 배달가능',
-    image_url       VARCHAR(500)    NULL                    COMMENT '메뉴 사진 URL',
-    last_eaten_at   DATETIME        NULL                    COMMENT '마지막으로 먹은 날짜',
-    created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+-- ------------------------------------------------------------
+-- common_codes
+-- ------------------------------------------------------------
+CREATE TABLE common_codes (
+    id         BIGINT      NOT NULL AUTO_INCREMENT,
+    code_group VARCHAR(30) NOT NULL,
+    code       VARCHAR(40) NOT NULL,
+    label      VARCHAR(50) NOT NULL,
+    sort_order INT         NOT NULL,
+    created_at DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     PRIMARY KEY (id),
 
-    CONSTRAINT chk_category
-        CHECK (category IN ('한식', '양식', '중식')),
-    CONSTRAINT chk_price_range
-        CHECK (price_range IN ('1만원이하', '1~2만원', '2만원이상')),
-    CONSTRAINT chk_distance
-        CHECK (distance IN ('도보5분', '도보10분', '배달가능'))
+    UNIQUE KEY uk_common_codes_group_code (code_group, code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE INDEX idx_menus_category        ON menus (category);
-CREATE INDEX idx_menus_price_range     ON menus (price_range);
-CREATE INDEX idx_menus_distance        ON menus (distance);
-CREATE INDEX idx_menus_restaurant_name ON menus (restaurant_name);
+-- ------------------------------------------------------------
+-- menus
+-- ------------------------------------------------------------
+CREATE TABLE menus (
+    id               BIGINT          NOT NULL AUTO_INCREMENT,
+    name             VARCHAR(100)    NOT NULL                COMMENT '메뉴 이름',
+    restaurant_name  VARCHAR(100)    NOT NULL                COMMENT '가게 이름',
+    category_code    VARCHAR(40)     NOT NULL                COMMENT 'KOREAN | WESTERN | CHINESE',
+    price_range_code VARCHAR(40)     NOT NULL                COMMENT 'UNDER_10000 | BETWEEN_10000_20000 | OVER_20000',
+    distance_code    VARCHAR(40)     NOT NULL                COMMENT 'WALK_5MIN | WALK_10MIN | DELIVERY',
+    image_url        VARCHAR(500)    NULL                    COMMENT '메뉴 사진 URL',
+    last_eaten_at    DATETIME        NULL                    COMMENT '마지막으로 먹은 날짜',
+    created_at       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_menus_category_code    ON menus (category_code);
+CREATE INDEX idx_menus_price_range_code ON menus (price_range_code);
+CREATE INDEX idx_menus_distance_code    ON menus (distance_code);
+CREATE INDEX idx_menus_restaurant_name  ON menus (restaurant_name);
 
 -- ------------------------------------------------------------
 -- reviews

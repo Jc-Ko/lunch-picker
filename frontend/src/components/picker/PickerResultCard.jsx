@@ -12,9 +12,9 @@ export default function PickerResultCard({ menu, onRepick }) {
         <h2 className="text-xl font-bold text-gray-800 mb-1">{menu.name}</h2>
         <p className="text-sm text-gray-500 mb-3">{menu.restaurantName}</p>
         <div className="flex flex-wrap gap-1 mb-3">
-          <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">{menu.category}</span>
-          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{menu.priceRange}</span>
-          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">{menu.distance}</span>
+          <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">{menu.category.label}</span>
+          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{menu.priceRange.label}</span>
+          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">{menu.distance.label}</span>
         </div>
         <p className="text-sm text-gray-500 mb-4">⭐ {menu.avgRating ?? '—'} · 리뷰 {menu.reviewCount}개</p>
         <button

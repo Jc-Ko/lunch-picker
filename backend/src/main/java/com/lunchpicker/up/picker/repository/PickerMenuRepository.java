@@ -15,34 +15,36 @@ public class PickerMenuRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     private static final String QUERY = """
-            SELECT m.id, m.name, m.restaurant_name, m.category, m.price_range, m.distance,
+            SELECT m.id, m.name, m.restaurant_name,
+                   m.category_code, m.price_range_code, m.distance_code,
                    m.image_url, m.last_eaten_at,
                    ROUND(AVG(r.rating), 1) AS avg_rating,
                    COUNT(r.id)             AS review_count
             FROM menus m
             LEFT JOIN reviews r ON r.menu_id = m.id
-            WHERE (:category IS NULL OR m.category = :category)
-              AND (:priceRange IS NULL OR m.price_range = :priceRange)
-              AND (:distance IS NULL OR m.distance = :distance)
-            GROUP BY m.id, m.name, m.restaurant_name, m.category,
-                     m.price_range, m.distance, m.image_url, m.last_eaten_at
+            WHERE (:categoryCode IS NULL OR m.category_code = :categoryCode)
+              AND (:priceRangeCode IS NULL OR m.price_range_code = :priceRangeCode)
+              AND (:distanceCode IS NULL OR m.distance_code = :distanceCode)
+            GROUP BY m.id, m.name, m.restaurant_name,
+                     m.category_code, m.price_range_code, m.distance_code,
+                     m.image_url, m.last_eaten_at
             HAVING (:minRating IS NULL OR ROUND(AVG(r.rating), 1) >= :minRating)
             """;
 
-    public List<PickerMenuDto> findFiltered(String category, String priceRange, String distance, Double minRating) {
+    public List<PickerMenuDto> findFiltered(String categoryCode, String priceRangeCode, String distanceCode, Double minRating) {
         MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("category", category)
-                .addValue("priceRange", priceRange)
-                .addValue("distance", distance)
+                .addValue("categoryCode", categoryCode)
+                .addValue("priceRangeCode", priceRangeCode)
+                .addValue("distanceCode", distanceCode)
                 .addValue("minRating", minRating);
 
         return jdbcTemplate.query(QUERY, params, (rs, rowNum) -> new PickerMenuDto(
                 rs.getLong("id"),
                 rs.getString("name"),
                 rs.getString("restaurant_name"),
-                rs.getString("category"),
-                rs.getString("price_range"),
-                rs.getString("distance"),
+                rs.getString("category_code"),
+                rs.getString("price_range_code"),
+                rs.getString("distance_code"),
                 rs.getString("image_url"),
                 rs.getTimestamp("last_eaten_at") != null
                         ? rs.getTimestamp("last_eaten_at").toLocalDateTime()

@@ -1,14 +1,14 @@
+import { useCommonCodes } from '../../hooks/useCommonCodes'
 import useMenuStore from '../../store/useMenuStore'
-
-const CATEGORIES = ['한식', '양식', '중식']
-const PRICE_RANGES = ['1만원이하', '1~2만원', '2만원이상']
-const DISTANCES = ['도보5분', '도보10분', '배달가능']
 
 const selectClass =
   'border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400'
 
 export default function MenuFilter() {
   const { filter, setFilter, resetFilter } = useMenuStore()
+  const { data: categories = [] } = useCommonCodes('category')
+  const { data: priceRanges = [] } = useCommonCodes('price_range')
+  const { data: distances = [] } = useCommonCodes('distance')
 
   return (
     <div className="flex gap-3 mb-6 items-center flex-wrap">
@@ -18,7 +18,7 @@ export default function MenuFilter() {
         className={selectClass}
       >
         <option value="">카테고리 전체</option>
-        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+        {categories.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
       </select>
 
       <select
@@ -27,7 +27,7 @@ export default function MenuFilter() {
         className={selectClass}
       >
         <option value="">가격대 전체</option>
-        {PRICE_RANGES.map(p => <option key={p} value={p}>{p}</option>)}
+        {priceRanges.map(p => <option key={p.code} value={p.code}>{p.label}</option>)}
       </select>
 
       <select
@@ -36,7 +36,7 @@ export default function MenuFilter() {
         className={selectClass}
       >
         <option value="">거리 전체</option>
-        {DISTANCES.map(d => <option key={d} value={d}>{d}</option>)}
+        {distances.map(d => <option key={d.code} value={d.code}>{d.label}</option>)}
       </select>
 
       <button

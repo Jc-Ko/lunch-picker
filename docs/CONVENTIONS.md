@@ -91,6 +91,7 @@ git push origin main
 | `picker` | picker-service |
 | `ai` | ai-service |
 | `docs` | 문서 |
+| `common` | 공통코드 등 공통 영역 |
 
 ### 예시
 
