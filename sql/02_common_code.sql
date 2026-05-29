@@ -3,9 +3,8 @@
 -- 오늘 뭐 먹지? 공통 코드
 -- ============================================================
 
--- 테이블 CREATE는 PM이 직접 실행함. 이 파일은 시드 데이터 INSERT만 담는다.
--- 실행 시 반드시 --default-character-set=utf8mb4 옵션 필요:
---   docker exec -i lunch-picker-mysql mysql -u lunchpicker -p1234 --default-character-set=utf8mb4 menu_db < sql/03_common_code.sql
+USE menu_db;
+SET NAMES utf8mb4;
 
 TRUNCATE TABLE common_codes;
 

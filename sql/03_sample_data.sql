@@ -11,6 +11,7 @@
 -- ============================================================
 
 USE menu_db;
+SET NAMES utf8mb4;
 
 -- ------------------------------------------------------------
 -- menus (id, name, restaurant_name, category_code, price_range_code, distance_code, image_url, last_eaten_at)
